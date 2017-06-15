@@ -1,0 +1,582 @@
+class Director {
+
+  constructor () {
+    this.directives = []
+  }
+
+  parse (node) {
+    node._directed_nodes = node._directed_nodes || []
+    this._parse_directed_nodes(node)
+  }
+
+  _parse_directed_nodes (node) {
+    let walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
+    while (walker.nextNode()) {
+      let directed_node = walker.currentNode
+      this._parse_directed_node(node, directed_node)
+    }
+  }
+
+  _parse_directed_node (node, directed_node) {
+    this._parse_node_attributes(directed_node)
+    if (directed_node._directives.length > 0) {
+      if (!node._directed_nodes.includes(directed_node)) {
+        node._directed_nodes.push(directed_node)
+        directed_node._director = node
+      }
+    }
+  }
+
+  _parse_node_attributes (node) {
+    node._directives = node._directives || []
+    for (let attribute of node.attributes) {
+      this._parse_node_attribute(node, attribute)
+    }
+  }
+
+  _parse_node_attribute (node, attribute) {
+    let directive_constructors = this.constructor.directives
+    for (let directive_constructor of directive_constructors) {
+      let directive = directive_constructor.parse(node, attribute)
+      if (directive) {
+        node._directives.push(directive)
+      }
+    }
+  }
+
+  render (node, context) {
+    context = context || node
+    for (let directed_node of node._directed_nodes) {
+      for (let directive of directed_node._directives) {
+        directive.run(directed_node, context)
+      }
+    }
+  }
+
+}
+
+class ExpressionPath {
+
+  constructor (path) {
+    let parts = path.split('.')
+    let n = parts.length
+
+    if (n == 1) {
+      this.evaluator = (value) => {
+        return value[path]
+      }
+      return
+    }
+
+    this.evaluator = (value) => {
+      for (let i = 0; i < n && value; i++) {
+        let part = parts[i]
+        value = value[part]
+      }
+      return value
+    }
+  }
+
+  evaluate (context) {
+    return this.evaluator(context)
+  }
+
+}
+
+class DirectiveAttribute {
+
+  static get _prefix () { return 'attr-' }
+
+  static match (attribute) {
+    return attribute.name.startsWith(this._prefix)
+  }
+
+  static parse (node, attribute) {
+    if (!this.match(attribute)) {
+      return
+    }
+
+    let name = attribute.name.substring(this._prefix.length)
+    let expression = new ExpressionPath(attribute.value)
+    let directive = new this({ name, expression })
+    return directive
+  }
+
+  constructor (options) {
+    this._name = options.name
+    this._expression = options.expression
+  }
+
+  run (node, context) {
+    let value = this._expression.evaluate(context)
+    node.setAttribute(this._name, value)
+  }
+
+}
+
+class DirectiveEvent {
+
+  static get _prefix () { return 'on-' }
+
+  static match (attribute) {
+    return attribute.name.startsWith(this._prefix)
+  }
+
+  static parse (node, attribute) {
+    if (!this.match(attribute)) {
+      return
+    }
+
+    let event_name = attribute.name.substring(this._prefix.length)
+    let event_expression = new ExpressionPath(attribute.value)
+    let root_node = node.getRootNode()
+
+    let directive = new this({ root_node, event_name, event_expression })
+    return directive
+  }
+
+  constructor (options) {
+    let root_node = this.root_node = options.root_node
+    let event_name = this.event_name = options.event_name
+    let event_expression = this.event_expression = options.event_expression
+
+    root_node._listening = root_node._listening || {}
+
+    if (!root_node._listening[event_name]) {
+      root_node.addEventListener(event_name, this._on_event.bind(this), false)
+      root_node._listening[event_name] = true
+    }
+  }
+
+  run (node, context) {
+    node._listeners = node._listeners || {}
+    let event_listener = this.event_expression.evaluate(context)
+    node._listeners[this.event_name] = event_listener
+  }
+
+  _on_event (event) {
+    let root_node = this.root_node
+
+    let target = event.target
+    let event_type = event.type
+
+    let bubble = true
+    let stop = event.stopPropagation
+
+    event.stopPropagation = function () {
+      stop.call(event)
+      bubble = false
+    }
+
+    while (bubble) {
+      let listeners = target._listeners
+      if (listeners) {
+        let listener = listeners[event_type]
+        if (listener) {
+          requestAnimationFrame(() => {
+            listener.call(target, event, event.detail)
+          })
+        }
+      }
+
+      if (!bubble) {
+        break
+      }
+
+      target = target.parentNode
+      if (!target) {
+        break
+      }
+      if (target === root_node) {
+        break
+      }
+    }
+  }
+
+}
+
+class DirectiveProperty {
+
+  static get _prefix () { return 'prop-' }
+
+  static match (attribute) {
+    return attribute.name.startsWith(this._prefix)
+  }
+
+  static parse (node, attribute) {
+    if (!this.match(attribute)) {
+      return
+    }
+
+    let property_name = attribute.name.substring(this._prefix.length)
+    let property_expression = new ExpressionPath(attribute.value)
+    let directive = new this({ property_name, property_expression })
+    return directive
+  }
+
+  constructor (options) {
+    this.property_name = options.property_name
+    this.property_expression = options.property_expression
+  }
+
+  run (node, context) {
+    let value = this.property_expression.evaluate(context)
+    node[this.property_name] = value
+  }
+
+}
+
+class DirectiveRepeat extends Director {
+
+  static match (attribute) {
+    return attribute.name === 'repeat'
+  }
+
+  static parse (node, attribute) {
+    if (!this.match(attribute)) {
+      return
+    }
+    if (node.nodeName.toLowerCase() !== 'template') {
+      return
+    }
+
+    let content = node.content.children[0]
+    let director_node = document.importNode(content, true)
+    let items_name = node.getAttribute('repeat') || 'items'
+    let item_name = node.getAttribute('item') || 'item'
+    let index_name = node.getAttribute('index') || 'index'
+    let items_expression = new ExpressionPath(items_name)
+
+    let directive = new this({ items_expression, item_name, index_name, director_node })
+    return directive
+  }
+
+  constructor (options) {
+    super()
+    this.items_expression = options.items_expression
+    this.item_name = options.item_name
+    this.index_name = options.index_name
+    this.director_node = options.director_node
+  }
+
+  _create_director_node (node, index) {
+    let new_director_node = this.director_node.cloneNode(true)
+    this.parse(new_director_node)
+    node._director_nodes[index] = new_director_node
+    return new_director_node
+  }
+
+  _remove_director_node (node, index) {
+    let director_node = node._director_nodes[index]
+    if (!director_node) {
+      return
+    }
+    director_node.remove()
+    node._director_nodes[index] = null
+  }
+
+  _render_director_node (node, index, context) {
+    let director_node = node._director_nodes[index]
+    if (!director_node) {
+      return
+    }
+    let new_context = Object.assign({}, context)
+    let item = node._new_items[index]
+    new_context[this.item_name] = item
+    new_context[this.index_name] = index
+
+    let detail = { index: index, data: new_context, node: director_node }
+    let config = { bubbles: true, cancelable: true, detail: detail }
+    let event = new CustomEvent('render', config)
+    node.dispatchEvent(event)
+
+    for (let directed_node of director_node._directed_nodes) {
+      for (let directive of directed_node._directives) {
+        directive.run(directed_node, new_context)
+      }
+    }
+  }
+
+  run (node, context) {
+    node._director_nodes = node._director_nodes || []
+    node._items = node._items || []
+    node._new_items = this.items_expression.evaluate(context) || []
+
+    let items_count = node._items.length
+    let new_items_count = node._new_items.length
+
+    if (new_items_count < items_count) {
+      for (let index = 0; index < new_items_count; index++) {
+        this._render_director_node(node, index, context)
+      }
+      for (let index = new_items_count; index < items_count; index++) {
+        this._remove_director_node(node, index)
+      }
+    }
+    else {
+      for (let index = 0; index < items_count; index++) {
+        this._render_director_node(node, index, context)
+      }
+      let fragment = document.createDocumentFragment()
+      for (let index = items_count; index < new_items_count; index++) {
+        let director_node = this._create_director_node(node, index)
+        this._render_director_node(node, index, context)
+        fragment.appendChild(director_node)
+      }
+      node.parentNode.insertBefore(fragment, node)
+    }
+
+    node._items = node._new_items.slice()
+  }
+
+}
+
+class DirectiveText {
+
+  static match (attribute) {
+    return attribute.name === 'text'
+  }
+
+  static parse (node, attribute) {
+    if (!this.match(attribute)) {
+      return
+    }
+
+    let value_expression = new ExpressionPath(attribute.value)
+    let directive = new this({ name, value_expression })
+    return directive
+  }
+
+  constructor (options) {
+    this.value_expression = options.value_expression
+  }
+
+  run (node, context) {
+    let value = this.value_expression.evaluate(context)
+    node.innerText = value
+  }
+
+}
+
+class PromiseRegister {
+
+  constructor () {
+    this.prepared = {}
+    this.resolved = {}
+  }
+
+  prepare (name) {
+    if (this.prepared[name]) {
+      return
+    }
+
+    this.prepared[name] = new Promise((resolve, reject) => {
+      this.resolved[name] = resolve
+    })
+  }
+
+  retrieve (name) {
+    this.prepare(name)
+    return this.prepared[name]
+  }
+
+  register (name, item) {
+    this.prepare(name)
+    this.resolved[name](item)
+  }
+
+  unregister (name) {
+    delete this.prepared[name]
+  }
+
+  contains (name) {
+    return this.prepared[name]
+  }
+
+}
+
+const register = new PromiseRegister()
+
+class TemplateElement extends HTMLElement {
+
+  static get is () { return 'template-element' }
+
+  constructor () {
+    super()
+    this._observer = new MutationObserver(this._register.bind(this))
+    this._observer.observe(this, { childList: true })
+    this._register()
+  }
+
+  _register () {
+    if (this._registered) {
+      this._observer.disconnect()
+      return
+    }
+    let template = this.querySelector('template')
+    if (!template) {
+      return
+    }
+    let name = this.id
+    if (!name) {
+      return
+    }
+    register.register(name, template)
+    this._registered = true
+  }
+
+}
+
+customElements.define(TemplateElement.is, TemplateElement)
+
+class CustomElement extends HTMLElement {
+
+  static get is () { throw new Error('static getter `is` must be overridden') }
+
+  static get props () { return {} }
+
+  static get render_delay () { return 16 }
+
+  static template () { throw new Error('static `template` must be overridden') }
+
+  constructor () {
+    super()
+    this._init()
+  }
+
+  define_properties (descriptors) {
+    for (let name in descriptors) {
+      let descriptor = descriptors[name]
+      this.define_property(name, descriptor)
+    }
+  }
+
+  define_property (name, descriptor) {
+    let value = descriptor.value
+    if (typeof value === 'function') {
+      value = value()
+    }
+    this._properties = this._properties || {}
+    this._properties[name] = value || this[name]
+
+    Object.defineProperty(this, name, {
+      get () {
+        return this._properties[name]
+      },
+      set (value) {
+        if (this._properties[name] === value) {
+          return
+        }
+        this._properties[name] = value
+        this._debounced_render()
+      }
+    })
+  }
+
+  fire (type, detail) {
+    let config = { bubbles: true, cancelable: true, composed: true, detail: detail }
+    let event = new CustomEvent(type, config)
+    this.dispatchEvent(event)
+    return this
+  }
+
+  action (name, data) {
+    this.fire('action', { name: name, data: data })
+    return this
+  }
+
+  async (func) {
+    requestAnimationFrame(func.bind(this))
+  }
+
+  debounce (func, wait) {
+    wait = wait || 0
+    let waiting = false
+    let invoked = () => {
+      waiting = false
+      func.call(this)
+    }
+    let debounced = () => {
+      if (waiting) {
+        return
+      }
+      waiting = true
+      setTimeout(invoked, wait)
+    }
+    return debounced
+  }
+
+  ready () {}
+
+  render () {}
+
+  _init () {
+    this._init_render()
+    this._init_props()
+    this._init_content().then(() => {
+      this._init_refs()
+      this._parse(this.shadowRoot)
+      this.ready()
+      this._render()
+    })
+  }
+
+  _init_render () {
+    this._render = this._render.bind(this)
+    this._debounced_render = this.debounce(this._render, this.constructor.render_delay)
+  }
+
+  _init_props () {
+    this.define_properties(this.constructor.props)
+  }
+
+  _init_content () {
+    this.attachShadow({ mode: 'open' })
+    return this.constructor.template().then((template) => {
+      let content = template.content
+      let node = document.importNode(content, true)
+      this.shadowRoot.appendChild(node)
+    }).catch((err) => {
+      console.warn(err)
+    })
+  }
+
+  _init_refs () {
+    this.refs = {}
+    let node_list = this.shadowRoot.querySelectorAll('[id]')
+    let node_array = Array.from(node_list)
+    for (let node of node_array) {
+      this.refs[node.id] = node
+    }
+  }
+
+  _parse () {
+    this._director = new Director()
+    this._director.parse(this.shadowRoot)
+  }
+
+  _render () {
+    this._director.render(this.shadowRoot, this)
+    this.render()
+  }
+
+}
+
+Director.directives = [
+  DirectiveAttribute,
+  DirectiveEvent,
+  DirectiveProperty,
+  DirectiveRepeat,
+  DirectiveText
+]
+
+window['pantarei'] = {
+  Director,
+  DirectiveEvent,
+  DirectiveAttribute,
+  DirectiveProperty,
+  DirectiveRepeat,
+  DirectiveText,
+  TemplateElement,
+  CustomElement
+}
