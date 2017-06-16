@@ -26,10 +26,10 @@ export class DirectiveEvent {
     let event_name = this.event_name = options.event_name
     let event_expression = this.event_expression = options.event_expression
 
+    this._on_event = this._on_event.bind(this)
     root_node._listening = root_node._listening || {}
-
     if (!root_node._listening[event_name]) {
-      root_node.addEventListener(event_name, this._on_event.bind(this), false)
+      root_node.addEventListener(event_name, this._on_event, false)
       root_node._listening[event_name] = true
     }
   }
@@ -60,7 +60,8 @@ export class DirectiveEvent {
         let listener = listeners[event_type]
         if (listener) {
           requestAnimationFrame(() => {
-            listener.call(target, event, event.detail)
+            let context = target.host ? target.host : target
+            listener.call(context, event, event.detail)
           })
         }
       }
