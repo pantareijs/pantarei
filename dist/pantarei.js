@@ -99,25 +99,34 @@ class DirectiveAttribute {
     return attribute.name.startsWith(this._prefix)
   }
 
+  static parse_name (attribute) {
+    return attribute.name.substring(this._prefix.length)
+  }
+
+  static parse_value (attribute) {
+    return attribute.value
+  }
+
   static parse (node, attribute) {
     if (!this.match(attribute)) {
       return
     }
 
-    let name = attribute.name.substring(this._prefix.length)
-    let expression = new ExpressionPath(attribute.value)
+    let name = this.parse_name(attribute)
+    let value = this.parse_value(attribute)
+    let expression = new ExpressionPath(value)
     let directive = new this({ name, expression })
     return directive
   }
 
   constructor (options) {
-    this._name = options.name
-    this._expression = options.expression
+    this.name = options.name
+    this.expression = options.expression
   }
 
   run (node, context) {
-    let value = this._expression.evaluate(context)
-    node.setAttribute(this._name, value)
+    let value = this.expression.evaluate(context)
+    node.setAttribute(this.name, value)
   }
 
 }
