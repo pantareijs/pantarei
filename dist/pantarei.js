@@ -411,6 +411,8 @@ class TemplateElement extends HTMLElement {
 
   static get is () { return 'template-element' }
 
+  static get register () { return register }
+
   constructor () {
     super()
     this._observer = new MutationObserver(this._register.bind(this))
