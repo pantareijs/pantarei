@@ -368,6 +368,79 @@ class DirectiveText {
 
 }
 
+class PromiseRegister {
+
+  constructor () {
+    this.prepared = {}
+    this.resolved = {}
+  }
+
+  prepare (name) {
+    if (this.prepared[name]) {
+      return
+    }
+
+    this.prepared[name] = new Promise((resolve, reject) => {
+      this.resolved[name] = resolve
+    })
+  }
+
+  retrieve (name) {
+    this.prepare(name)
+    return this.prepared[name]
+  }
+
+  register (name, item) {
+    this.prepare(name)
+    this.resolved[name](item)
+  }
+
+  unregister (name) {
+    delete this.prepared[name]
+  }
+
+  contains (name) {
+    return this.prepared[name]
+  }
+
+}
+
+const register = new PromiseRegister()
+
+class TemplateElement extends HTMLElement {
+
+  static get is () { return 'template-element' }
+
+  static get register () { return register }
+
+  constructor () {
+    super()
+    this._observer = new MutationObserver(this._register.bind(this))
+    this._observer.observe(this, { childList: true })
+    this._register()
+  }
+
+  _register () {
+    if (this._registered) {
+      this._observer.disconnect()
+      return
+    }
+    let template = this.querySelector('template')
+    if (!template) {
+      return
+    }
+    let name = this.id
+    if (!name) {
+      return
+    }
+    register.register(name, template)
+    this._registered = true
+  }
+
+}
+
+customElements.define(TemplateElement.is, TemplateElement)
+
 class Element extends HTMLElement {
 
   static get is () { throw new Error('static getter `is` must be overridden') }
@@ -376,7 +449,7 @@ class Element extends HTMLElement {
 
   static get render_delay () { return 16 }
 
-  static template () { throw new Error('static `template` must be overridden') }
+  static template () { return TemplateElement.register.retrieve(this.is) }
 
   constructor () {
     super()
@@ -500,79 +573,6 @@ class Element extends HTMLElement {
   }
 
 }
-
-class PromiseRegister {
-
-  constructor () {
-    this.prepared = {}
-    this.resolved = {}
-  }
-
-  prepare (name) {
-    if (this.prepared[name]) {
-      return
-    }
-
-    this.prepared[name] = new Promise((resolve, reject) => {
-      this.resolved[name] = resolve
-    })
-  }
-
-  retrieve (name) {
-    this.prepare(name)
-    return this.prepared[name]
-  }
-
-  register (name, item) {
-    this.prepare(name)
-    this.resolved[name](item)
-  }
-
-  unregister (name) {
-    delete this.prepared[name]
-  }
-
-  contains (name) {
-    return this.prepared[name]
-  }
-
-}
-
-const register = new PromiseRegister()
-
-class TemplateElement extends HTMLElement {
-
-  static get is () { return 'template-element' }
-
-  static get register () { return register }
-
-  constructor () {
-    super()
-    this._observer = new MutationObserver(this._register.bind(this))
-    this._observer.observe(this, { childList: true })
-    this._register()
-  }
-
-  _register () {
-    if (this._registered) {
-      this._observer.disconnect()
-      return
-    }
-    let template = this.querySelector('template')
-    if (!template) {
-      return
-    }
-    let name = this.id
-    if (!name) {
-      return
-    }
-    register.register(name, template)
-    this._registered = true
-  }
-
-}
-
-customElements.define(TemplateElement.is, TemplateElement)
 
 Director.directives = [
   DirectiveAttribute,
