@@ -1,0 +1,29 @@
+{
+  "name": "pantarei",
+  "version": "2.0.0",
+  "description": "A resilient JavaScript Web Framework for the Distributed Web",
+  "main": "dist/pantarei.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "build": "rollup src/pantarei.js -o dist/pantarei.js",
+    "test": "echo \"No test specified yet\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pantareijs/pantarei.git"
+  },
+  "keywords": [
+    "Pantarei",
+    "WebComponents"
+  ],
+  "author": {
+    "name" : "Enrico Marino",
+    "url" : "http://enricomarino.com/"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pantareijs/pantarei/issues"
+  },
+  "homepage": "https://pantarei.js.org"
+}
