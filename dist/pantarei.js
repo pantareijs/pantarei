@@ -1,11 +1,10 @@
 class Director {
 
-  constructor () {
-    this.directives = []
-  }
+  constructor () {}
 
   parse (node) {
     node._directed_nodes = node._directed_nodes || []
+    this._parse_node_directives(node)
     this._parse_directed_nodes(node)
   }
 
@@ -18,7 +17,7 @@ class Director {
   }
 
   _parse_directed_node (node, directed_node) {
-    this._parse_node_attributes(directed_node)
+    this._parse_node_directives(directed_node)
     if (directed_node._directives.length > 0) {
       if (!node._directed_nodes.includes(directed_node)) {
         node._directed_nodes.push(directed_node)
@@ -27,14 +26,17 @@ class Director {
     }
   }
 
-  _parse_node_attributes (node) {
+  _parse_node_directives (node) {
     node._directives = node._directives || []
+    if (!node.attributes) {
+      return
+    }
     for (let attribute of node.attributes) {
-      this._parse_node_attribute(node, attribute)
+      this._parse_node_directive(node, attribute)
     }
   }
 
-  _parse_node_attribute (node, attribute) {
+  _parse_node_directive (node, attribute) {
     let directive_constructors = this.constructor.directives
     for (let directive_constructor of directive_constructors) {
       let directive = directive_constructor.parse(node, attribute)
@@ -44,12 +46,18 @@ class Director {
     }
   }
 
+  _run_directives (node, context) {
+    for (let directive of node._directives) {
+      directive.run(node, context)
+    }
+  }
+
   render (node, context) {
     context = context || node
+    this._run_directives(node, context)
+
     for (let directed_node of node._directed_nodes) {
-      for (let directive of directed_node._directives) {
-        directive.run(directed_node, context)
-      }
+      this._run_directives(directed_node, context)
     }
   }
 
@@ -226,7 +234,7 @@ class DirectiveProperty {
 
 }
 
-class DirectiveRepeat extends Director {
+class DirectiveRepeat {
 
   static match (attribute) {
     return attribute.name === 'repeat'
@@ -252,16 +260,16 @@ class DirectiveRepeat extends Director {
   }
 
   constructor (options) {
-    super()
     this.items_expression = options.items_expression
     this.item_name = options.item_name
     this.index_name = options.index_name
     this.director_node = options.director_node
+    this.director = new Director()
   }
 
   _create_director_node (node, index) {
     let new_director_node = this.director_node.cloneNode(true)
-    this.parse(new_director_node)
+    this.director.parse(new_director_node)
     node._director_nodes[index] = new_director_node
     return new_director_node
   }
@@ -290,11 +298,12 @@ class DirectiveRepeat extends Director {
     let event = new CustomEvent('render', config)
     node.dispatchEvent(event)
 
-    for (let directed_node of director_node._directed_nodes) {
-      for (let directive of directed_node._directives) {
-        directive.run(directed_node, new_context)
-      }
-    }
+    this.director.render(director_node, new_context)
+    // for (let directed_node of director_node._directed_nodes) {
+    //   for (let directive of directed_node._directives) {
+    //     directive.run(directed_node, new_context)
+    //   }
+    // }
   }
 
   run (node, context) {

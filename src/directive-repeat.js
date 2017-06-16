@@ -1,7 +1,7 @@
 import { Director } from './director'
 import { ExpressionPath } from './expression-path'
 
-export class DirectiveRepeat extends Director {
+export class DirectiveRepeat {
 
   static match (attribute) {
     return attribute.name === 'repeat'
@@ -27,16 +27,16 @@ export class DirectiveRepeat extends Director {
   }
 
   constructor (options) {
-    super()
     this.items_expression = options.items_expression
     this.item_name = options.item_name
     this.index_name = options.index_name
     this.director_node = options.director_node
+    this.director = new Director()
   }
 
   _create_director_node (node, index) {
     let new_director_node = this.director_node.cloneNode(true)
-    this.parse(new_director_node)
+    this.director.parse(new_director_node)
     node._director_nodes[index] = new_director_node
     return new_director_node
   }
@@ -65,11 +65,12 @@ export class DirectiveRepeat extends Director {
     let event = new CustomEvent('render', config)
     node.dispatchEvent(event)
 
-    for (let directed_node of director_node._directed_nodes) {
-      for (let directive of directed_node._directives) {
-        directive.run(directed_node, new_context)
-      }
-    }
+    this.director.render(director_node, new_context)
+    // for (let directed_node of director_node._directed_nodes) {
+    //   for (let directive of directed_node._directives) {
+    //     directive.run(directed_node, new_context)
+    //   }
+    // }
   }
 
   run (node, context) {
