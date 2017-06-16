@@ -255,6 +255,12 @@ class DirectiveProperty {
 
 class DirectiveRepeat {
 
+  static get items_name () { return 'items' }
+
+  static get item_name () { return 'item' }
+
+  static get index_name () { return 'index' }
+
   static match (attribute) {
     return attribute.name === 'repeat'
   }
@@ -269,9 +275,9 @@ class DirectiveRepeat {
 
     let content = node.content.children[0]
     let director_node = document.importNode(content, true)
-    let items_name = node.getAttribute('repeat') || 'items'
-    let item_name = node.getAttribute('item') || 'item'
-    let index_name = node.getAttribute('index') || 'index'
+    let items_name = node.getAttribute('repeat') || this.items_name
+    let item_name = node.getAttribute('item') || this.item_name
+    let index_name = node.getAttribute('index') || this.index_name
     let items_expression = new ExpressionPath(items_name)
 
     let directive = new this({ items_expression, item_name, index_name, director_node })
@@ -318,11 +324,6 @@ class DirectiveRepeat {
     node.dispatchEvent(event)
 
     this.director.render(director_node, new_context)
-    // for (let directed_node of director_node._directed_nodes) {
-    //   for (let directive of directed_node._directives) {
-    //     directive.run(directed_node, new_context)
-    //   }
-    // }
   }
 
   run (node, context) {
