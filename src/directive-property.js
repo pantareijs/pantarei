@@ -2,7 +2,7 @@ import { ExpressionPath } from './expression-path'
 
 export class DirectiveProperty {
 
-  static get _prefix () { return 'prop-' }
+  static get _prefix () { return 'prop.' }
 
   static match (attribute) {
     return attribute.name.startsWith(this._prefix)
