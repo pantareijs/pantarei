@@ -1,7 +1,5 @@
 class Director {
 
-  constructor () {}
-
   parse (node) {
     node._directed_nodes = node._directed_nodes || []
     this._parse_node_directives(node)
@@ -593,21 +591,100 @@ class Element extends HTMLElement {
 
 }
 
-Director.directives = [
-  DirectiveAttribute,
-  DirectiveEvent,
-  DirectiveProperty,
-  DirectiveRepeat,
-  DirectiveText
-]
+class Pantarei {
 
-window['pantarei'] = {
-  Director,
-  DirectiveEvent,
-  DirectiveAttribute,
-  DirectiveProperty,
-  DirectiveRepeat,
-  DirectiveText,
-  Element,
-  TemplateElement
+  static get directives () {
+    return [
+      DirectiveAttribute,
+      DirectiveEvent,
+      DirectiveProperty,
+      DirectiveRepeat,
+      DirectiveText
+    ]
+  }
+
+  constructor (options) {
+    if (!options) {
+      throw new Error('argument is missing')
+    }
+    if (!options.el) {
+      throw new Error('el is missing')
+    }
+    if (!(options.el instanceof HTMLElement)) {
+      throw new Error('el is not an instance of HTMLElement')
+    }
+    this._root = options.el
+    this._director = new Director()
+    this._director.parse(this._root)
+
+    if (!options.data) {
+      options.data = {}
+    }
+    if (typeof options.data !== 'object') {
+      throw new Error('data is not an object')
+    }
+
+    this._debounced_update = this.debounce(this.update, 16)
+
+    this._data = {}
+    this.data = {}
+    this._watch(options.data)
+
+    this._debounced_update()
+  }
+
+  _watch (data) {
+    for (let name in data) {
+      let value = data[name]
+      this._watch_property(name, value)
+    }
+  }
+
+  _watch_property (name, value) {
+    let self = this
+
+    self._data[name] = value
+
+    Object.defineProperty(self.data, name, {
+      get () {
+        return self._data[name]
+      },
+      set (value) {
+        if (self._data[name] === value) {
+          return
+        }
+        self._data[name] = value
+        self._debounced_update()
+      }
+    })
+  }
+
+  update () {
+    this._director.render(this._root, this.data)
+  }
+
+  debounce (func, wait) {
+    wait = wait || 0
+    let waiting = false
+    let invoked = () => {
+      waiting = false
+      func.call(this)
+    }
+    let debounced = () => {
+      if (waiting) {
+        return
+      }
+      waiting = true
+      setTimeout(invoked, wait)
+    }
+    return debounced
+  }
+
 }
+
+Pantarei.Director = Director
+Pantarei.Director.directives = Pantarei.directives
+Pantarei.Element = Element
+Pantarei.TemplateElement = TemplateElement
+
+window['Pantarei'] = Pantarei
