@@ -593,6 +593,8 @@ class Element extends HTMLElement {
 
 class Pantarei {
 
+  static get version () { return '2.1.0' }
+
   static get directives () {
     return [
       DirectiveAttribute,
