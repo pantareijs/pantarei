@@ -131,7 +131,7 @@ class DirectiveAttribute {
 
 class DirectiveEvent {
 
-  static get _prefix () { return 'on-' }
+  static get _prefix () { return 'ev.' }
 
   static match (attribute) {
     return attribute.name.startsWith(this._prefix)
