@@ -91,7 +91,7 @@ class ExpressionPath {
 
 class DirectiveAttribute {
 
-  static get _prefix () { return 'attr-' }
+  static get _prefix () { return 'attr.' }
 
   static match (attribute) {
     return attribute.name.startsWith(this._prefix)
