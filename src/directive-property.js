@@ -38,6 +38,12 @@ export class DirectiveProperty {
 
   run (node, context) {
     let value = this.expression.evaluate(context)
+
+    if (this.name === 'checked' && node.nodeName === 'INPUT') {
+      node.checked = !!value
+      return
+    }
+
     node[this.name] = value
   }
 
