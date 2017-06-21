@@ -43,6 +43,12 @@ export class DirectiveProperty {
       node.checked = !!value
       return
     }
+    if (this.name === 'focus' && node.nodeName === 'INPUT') {
+      if (!!value) {
+        node.focus()
+      }
+      return
+    }
 
     node[this.name] = value
   }
