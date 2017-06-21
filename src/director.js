@@ -1,7 +1,11 @@
 export class Director {
 
+  constructor (root_node) {
+    this.root_node = root_node
+  }
+
   parse (node) {
-    this.root_node = node
+    this.root_node = this.root_node || node
     node._directed_nodes = node._directed_nodes || []
     this._parse_node_directives(node)
     this._parse_directed_nodes(node)

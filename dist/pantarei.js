@@ -1,7 +1,11 @@
 class Director {
 
+  constructor (root_node) {
+    this.root_node = root_node
+  }
+
   parse (node) {
-    this.root_node = node
+    this.root_node = this.root_node || node
     node._directed_nodes = node._directed_nodes || []
     this._parse_node_directives(node)
     this._parse_directed_nodes(node)
@@ -158,7 +162,7 @@ class DirectiveEvent {
 
   constructor (options) {
     let node = this.node = options.node
-    let root_node = this.root_node = node.getRootNode()
+    let root_node = this.root_node = node._root_node
     let event_name = this.event_name = options.event_name
     let event_expression = this.event_expression = options.event_expression
 

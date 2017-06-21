@@ -24,7 +24,7 @@ export class DirectiveEvent {
 
   constructor (options) {
     let node = this.node = options.node
-    let root_node = this.root_node = node.getRootNode()
+    let root_node = this.root_node = node._root_node
     let event_name = this.event_name = options.event_name
     let event_expression = this.event_expression = options.event_expression
 
