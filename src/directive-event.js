@@ -28,6 +28,18 @@ export class DirectiveEvent {
     let event_name = this.event_name = options.event_name
     let event_expression = this.event_expression = options.event_expression
 
+    let unbubbled = ['focus', 'blur']
+    if (node.nodeName === 'INPUT' && unbubbled.includes(event_name)) {
+      let postfix = '-bubble'
+      let custom_event_name = event_name + postfix
+      node.addEventListener(event_name, (event) => {
+        let config = { bubbles: true, cancelable: true, detail: event }
+        let custom_event = new CustomEvent(custom_event_name, config)
+        node.dispatchEvent(custom_event)
+      })
+      event_name = this.event_name = custom_event_name
+    }
+
     this._on_event = this._on_event.bind(this)
     root_node._listening = root_node._listening || {}
     if (!root_node._listening[event_name]) {

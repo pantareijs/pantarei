@@ -41,7 +41,7 @@ export class DirectiveClass {
 
   run (node, context) {
     let value = this.expression.evaluate(context)
-    node.classList.toggle(this.name, value)
+    node.classList.toggle(this.name, !!value)
   }
 
 }
