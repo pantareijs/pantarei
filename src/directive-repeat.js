@@ -3,6 +3,8 @@ import { ExpressionPath } from './expression-path'
 
 export class DirectiveRepeat {
 
+  static get type () { return 'repeat' }
+
   static get items_name () { return 'items' }
 
   static get item_name () { return 'item' }

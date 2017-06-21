@@ -2,6 +2,8 @@ import { ExpressionPath } from './expression-path'
 
 export class DirectiveEvent {
 
+  static get type () { return 'event' }
+
   static get _prefix () { return 'ev.' }
 
   static match (attribute) {

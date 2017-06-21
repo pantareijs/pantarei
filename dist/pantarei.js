@@ -91,6 +91,8 @@ class ExpressionPath {
 
 class DirectiveAttribute {
 
+  static get type () { return 'attribute' }
+
   static get _prefix () { return 'attr.' }
 
   static match (attribute) {
@@ -131,6 +133,8 @@ class DirectiveAttribute {
 }
 
 class DirectiveEvent {
+
+  static get type () { return 'event' }
 
   static get _prefix () { return 'ev.' }
 
@@ -214,6 +218,8 @@ class DirectiveEvent {
 
 class DirectiveProperty {
 
+  static get type () { return 'property' }
+
   static get _prefix () { return 'prop.' }
 
   static match (attribute) {
@@ -254,6 +260,8 @@ class DirectiveProperty {
 }
 
 class DirectiveRepeat {
+
+  static get type () { return 'repeat' }
 
   static get items_name () { return 'items' }
 
@@ -362,6 +370,8 @@ class DirectiveRepeat {
 }
 
 class DirectiveText {
+
+  static get type () { return 'text' }
 
   static match (attribute) {
     return attribute.name === 'text'

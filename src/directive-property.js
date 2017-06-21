@@ -2,6 +2,8 @@ import { ExpressionPath } from './expression-path'
 
 export class DirectiveProperty {
 
+  static get type () { return 'property' }
+
   static get _prefix () { return 'prop.' }
 
   static match (attribute) {

@@ -2,6 +2,8 @@ import { ExpressionPath } from './expression-path'
 
 export class DirectiveText {
 
+  static get type () { return 'text' }
+
   static match (attribute) {
     return attribute.name === 'text'
   }
