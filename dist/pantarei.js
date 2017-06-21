@@ -113,11 +113,12 @@ class DirectiveAttribute {
     let name = this.parse_name(attribute)
     let value = this.parse_value(attribute)
     let expression = new ExpressionPath(value)
-    let directive = new this({ name, expression })
+    let directive = new this({ node, name, expression })
     return directive
   }
 
   constructor (options) {
+    this.node = options.node
     this.name = options.name
     this.expression = options.expression
   }
@@ -144,14 +145,14 @@ class DirectiveEvent {
 
     let event_name = attribute.name.substring(this._prefix.length)
     let event_expression = new ExpressionPath(attribute.value)
-    let root_node = node.getRootNode()
 
-    let directive = new this({ root_node, event_name, event_expression })
+    let directive = new this({ node, event_name, event_expression })
     return directive
   }
 
   constructor (options) {
-    let root_node = this.root_node = options.root_node
+    let node = this.node = options.node
+    let root_node = this.root_node = node.getRootNode()
     let event_name = this.event_name = options.event_name
     let event_expression = this.event_expression = options.event_expression
 
@@ -235,11 +236,12 @@ class DirectiveProperty {
     let name = this.parse_name(attribute)
     let value = this.parse_value(attribute)
     let expression = new ExpressionPath(value)
-    let directive = new this({ name, expression })
+    let directive = new this({ node, name, expression })
     return directive
   }
 
   constructor (options) {
+    this.node = options.node
     this.name = options.name
     this.expression = options.expression
   }
@@ -278,11 +280,12 @@ class DirectiveRepeat {
     let index_name = node.getAttribute('index') || this.index_name
     let items_expression = new ExpressionPath(items_name)
 
-    let directive = new this({ items_expression, item_name, index_name, director_node })
+    let directive = new this({ node, items_expression, item_name, index_name, director_node })
     return directive
   }
 
   constructor (options) {
+    this.node = options.node
     this.items_expression = options.items_expression
     this.item_name = options.item_name
     this.index_name = options.index_name
@@ -369,17 +372,18 @@ class DirectiveText {
       return
     }
 
-    let value_expression = new ExpressionPath(attribute.value)
-    let directive = new this({ name, value_expression })
+    let expression = new ExpressionPath(attribute.value)
+    let directive = new this({ node, expression })
     return directive
   }
 
   constructor (options) {
-    this.value_expression = options.value_expression
+    this.node = options.node
+    this.expression = options.expression
   }
 
-  run (node, context) {
-    let value = this.value_expression.evaluate(context)
+  run (node, data) {
+    let value = this.expression.evaluate(data)
     node.innerText = value
   }
 

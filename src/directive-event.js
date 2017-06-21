@@ -15,14 +15,14 @@ export class DirectiveEvent {
 
     let event_name = attribute.name.substring(this._prefix.length)
     let event_expression = new ExpressionPath(attribute.value)
-    let root_node = node.getRootNode()
 
-    let directive = new this({ root_node, event_name, event_expression })
+    let directive = new this({ node, event_name, event_expression })
     return directive
   }
 
   constructor (options) {
-    let root_node = this.root_node = options.root_node
+    let node = this.node = options.node
+    let root_node = this.root_node = node.getRootNode()
     let event_name = this.event_name = options.event_name
     let event_expression = this.event_expression = options.event_expression
 

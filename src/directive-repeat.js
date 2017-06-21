@@ -28,11 +28,12 @@ export class DirectiveRepeat {
     let index_name = node.getAttribute('index') || this.index_name
     let items_expression = new ExpressionPath(items_name)
 
-    let directive = new this({ items_expression, item_name, index_name, director_node })
+    let directive = new this({ node, items_expression, item_name, index_name, director_node })
     return directive
   }
 
   constructor (options) {
+    this.node = options.node
     this.items_expression = options.items_expression
     this.item_name = options.item_name
     this.index_name = options.index_name

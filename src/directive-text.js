@@ -11,17 +11,18 @@ export class DirectiveText {
       return
     }
 
-    let value_expression = new ExpressionPath(attribute.value)
-    let directive = new this({ name, value_expression })
+    let expression = new ExpressionPath(attribute.value)
+    let directive = new this({ node, expression })
     return directive
   }
 
   constructor (options) {
-    this.value_expression = options.value_expression
+    this.node = options.node
+    this.expression = options.expression
   }
 
-  run (node, context) {
-    let value = this.value_expression.evaluate(context)
+  run (node, data) {
+    let value = this.expression.evaluate(data)
     node.innerText = value
   }
 

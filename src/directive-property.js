@@ -24,11 +24,12 @@ export class DirectiveProperty {
     let name = this.parse_name(attribute)
     let value = this.parse_value(attribute)
     let expression = new ExpressionPath(value)
-    let directive = new this({ name, expression })
+    let directive = new this({ node, name, expression })
     return directive
   }
 
   constructor (options) {
+    this.node = options.node
     this.name = options.name
     this.expression = options.expression
   }
