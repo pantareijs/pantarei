@@ -1,5 +1,6 @@
 import { Director } from './director'
 import { DirectiveAttribute } from './directive-attribute'
+import { DirectiveClass } from './directive-class'
 import { DirectiveEvent } from './directive-event'
 import { DirectiveProperty } from './directive-property'
 import { DirectiveRepeat } from './directive-repeat'
@@ -14,6 +15,7 @@ class Pantarei {
   static get directives () {
     return [
       DirectiveAttribute,
+      DirectiveClass,
       DirectiveEvent,
       DirectiveProperty,
       DirectiveRepeat,
