@@ -1,6 +1,7 @@
 class Director {
 
   parse (node) {
+    this.root_node = node
     node._directed_nodes = node._directed_nodes || []
     this._parse_node_directives(node)
     this._parse_directed_nodes(node)
@@ -26,6 +27,7 @@ class Director {
 
   _parse_node_directives (node) {
     node._directives = node._directives || []
+    node._root_node = this.root_node
     if (!node.attributes) {
       return
     }
