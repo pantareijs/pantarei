@@ -32,7 +32,7 @@ class Pantarei {
       throw new Error('el is not an instance of HTMLElement')
     }
     this._root = options.el
-    this._director = new Director()
+    this._director = new Director(this._root)
     this._director.parse(this._root)
 
     if (!options.data) {

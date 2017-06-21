@@ -40,7 +40,7 @@ export class DirectiveRepeat {
     this.item_name = options.item_name
     this.index_name = options.index_name
     this.director_node = options.director_node
-    this.director = new Director()
+    this.director = new Director(this.node._root_node)
   }
 
   _create_director_node (node, index) {

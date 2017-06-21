@@ -38,7 +38,8 @@ export class DirectiveEvent {
 
   run (node, context) {
     node._listeners = node._listeners || {}
-    let event_listener = this.event_expression.evaluate(context)
+    let handler = this.root_node.host ? this.root_node.host : this.root_node
+    let event_listener = this.event_expression.evaluate(handler)
     node._listeners[this.event_name] = event_listener
   }
 

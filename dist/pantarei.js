@@ -176,7 +176,8 @@ class DirectiveEvent {
 
   run (node, context) {
     node._listeners = node._listeners || {}
-    let event_listener = this.event_expression.evaluate(context)
+    let handler = this.root_node.host ? this.root_node.host : this.root_node
+    let event_listener = this.event_expression.evaluate(handler)
     node._listeners[this.event_name] = event_listener
   }
 
@@ -304,7 +305,7 @@ class DirectiveRepeat {
     this.item_name = options.item_name
     this.index_name = options.index_name
     this.director_node = options.director_node
-    this.director = new Director()
+    this.director = new Director(this.node._root_node)
   }
 
   _create_director_node (node, index) {
@@ -636,7 +637,7 @@ class Pantarei {
       throw new Error('el is not an instance of HTMLElement')
     }
     this._root = options.el
-    this._director = new Director()
+    this._director = new Director(this._root)
     this._director.parse(this._root)
 
     if (!options.data) {
