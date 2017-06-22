@@ -44,7 +44,7 @@ class Pantarei {
       throw new Error('data is not an object')
     }
 
-    this._debounced_update = this.debounce(this.update, 16)
+    this._debounced_update = this.debounce(this._update, 16)
 
     this._data = {}
     this.data = {}
@@ -79,8 +79,8 @@ class Pantarei {
     })
   }
 
-  update () {
-    this._director.render(this._root, this.data)
+  _update () {
+    this._director.render(this._root, this.data, this)
   }
 
   debounce (func, wait) {

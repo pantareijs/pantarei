@@ -50,18 +50,20 @@ export class Director {
     }
   }
 
-  _run_directives (node, context) {
+  _run_directives (node, data, context) {
     for (let directive of node._directives) {
-      directive.run(node, context)
+      directive.run(node, data, context)
     }
   }
 
-  render (node, context) {
+  render (node, data, context) {
+    data = data || node
     context = context || node
-    this._run_directives(node, context)
+    node._context = context
+    this._run_directives(node, data, context)
 
     for (let directed_node of node._directed_nodes) {
-      this._run_directives(directed_node, context)
+      this._run_directives(directed_node, data, context)
     }
   }
 

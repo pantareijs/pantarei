@@ -48,9 +48,9 @@ export class DirectiveEvent {
     }
   }
 
-  run (node, context) {
+  run (node, data, context) {
     node._listeners = node._listeners || {}
-    let handler = this.root_node.host ? this.root_node.host : this.root_node
+    let handler = this.root_node.host ? this.root_node.host : context
     let event_listener = this.event_expression.evaluate(handler)
     node._listeners[this.event_name] = event_listener
   }
@@ -75,8 +75,8 @@ export class DirectiveEvent {
         let listener = listeners[event_type]
         if (listener) {
           requestAnimationFrame(() => {
-            let context = target.host ? target.host : target
-            listener.call(context, event, event.detail)
+            let node = target.host ? target.host : root_node._context
+            listener.call(node, event, event.detail)
           })
         }
       }
