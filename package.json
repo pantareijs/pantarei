@@ -1,6 +1,6 @@
 {
   "name": "pantarei",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A resilient JavaScript Web Framework for the Distributed Web",
   "main": "dist/pantarei.js",
   "dependencies": {},

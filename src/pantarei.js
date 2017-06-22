@@ -10,7 +10,7 @@ import { TemplateElement} from './template-element'
 
 class Pantarei {
 
-  static get version () { return '2.1.0' }
+  static get version () { return '2.2.0' }
 
   static get directives () {
     return [
