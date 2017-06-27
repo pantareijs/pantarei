@@ -35,7 +35,7 @@ class Director {
     if (!node.attributes) {
       return
     }
-    for (let attribute of node.attributes) {
+    for (let attribute of Array.from(node.attributes)) {
       this._parse_node_directive(node, attribute)
     }
   }
@@ -543,6 +543,9 @@ class TemplateElement extends HTMLElement {
     if (!name) {
       return
     }
+    if (window.ShadyCSS) {
+      ShadyCSS.prepareTemplate(template, name)
+    }
     register.register(name, template)
     this._registered = true
   }
@@ -564,6 +567,12 @@ class Element extends HTMLElement {
   constructor () {
     super()
     this._init()
+  }
+
+  connectedCallback () {
+    if (window.ShadyCSS) {
+      ShadyCSS.styleElement(this)
+    }
   }
 
   define_properties (descriptors) {

@@ -35,7 +35,7 @@ export class Director {
     if (!node.attributes) {
       return
     }
-    for (let attribute of node.attributes) {
+    for (let attribute of Array.from(node.attributes)) {
       this._parse_node_directive(node, attribute)
     }
   }

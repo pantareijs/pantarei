@@ -28,6 +28,9 @@ export class TemplateElement extends HTMLElement {
     if (!name) {
       return
     }
+    if (window.ShadyCSS) {
+      ShadyCSS.prepareTemplate(template, name)
+    }
     register.register(name, template)
     this._registered = true
   }

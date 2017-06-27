@@ -16,6 +16,12 @@ export class Element extends HTMLElement {
     this._init()
   }
 
+  connectedCallback () {
+    if (window.ShadyCSS) {
+      ShadyCSS.styleElement(this)
+    }
+  }
+
   define_properties (descriptors) {
     for (let name in descriptors) {
       let descriptor = descriptors[name]
