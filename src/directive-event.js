@@ -59,7 +59,6 @@ export class DirectiveEvent {
     let root_node = this.root_node
 
     let target = event.target
-    let original_target = target
     let event_type = event.type
 
     let bubble = true
@@ -75,11 +74,8 @@ export class DirectiveEvent {
       if (listeners) {
         let listener = listeners[event_type]
         if (listener) {
-          requestAnimationFrame(() => {
-            let node = target.host ? target.host : root_node._context
-            event.target = original_target
-            listener.call(node, event, event.detail)
-          })
+          let node = target.host ? target.host : root_node._context
+          listener.call(node, event, event.detail)
         }
       }
 
