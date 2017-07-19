@@ -74,9 +74,9 @@ export class DirectiveEvent {
       if (listeners) {
         let listener = listeners[event_type]
         if (listener) {
-          let root_node = target.getRootNode()
+          let root_node = target.getRootNode ? target.getRootNode() : target
           let host = root_node ? root_node.host : root_node._context
-          let node = host
+          let node = host ? host : target
           listener.call(node, event, event.detail)
         }
       }
