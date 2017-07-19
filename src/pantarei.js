@@ -10,7 +10,7 @@ import { TemplateElement} from './template-element'
 
 class Pantarei {
 
-  static get version () { return '2.2.0' }
+  static get version () { return '2.2.2' }
 
   static get directives () {
     return [
@@ -107,4 +107,4 @@ Pantarei.Director.directives = Pantarei.directives
 Pantarei.Element = Element
 Pantarei.TemplateElement = TemplateElement
 
-window['Pantarei'] = Pantarei
+self['Pantarei'] = Pantarei

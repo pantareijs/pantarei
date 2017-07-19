@@ -245,6 +245,7 @@ class DirectiveEvent {
     let root_node = this.root_node
 
     let target = event.target
+    let original_target = target
     let event_type = event.type
 
     let bubble = true
@@ -262,6 +263,7 @@ class DirectiveEvent {
         if (listener) {
           requestAnimationFrame(() => {
             let node = target.host ? target.host : root_node._context
+            event.target = original_target
             listener.call(node, event, event.detail)
           })
         }
@@ -695,7 +697,7 @@ class Element extends HTMLElement {
 
 class Pantarei {
 
-  static get version () { return '2.2.0' }
+  static get version () { return '2.2.2' }
 
   static get directives () {
     return [
@@ -792,4 +794,4 @@ Pantarei.Director.directives = Pantarei.directives
 Pantarei.Element = Element
 Pantarei.TemplateElement = TemplateElement
 
-window['Pantarei'] = Pantarei
+self['Pantarei'] = Pantarei

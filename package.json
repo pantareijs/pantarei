@@ -1,12 +1,12 @@
 {
   "name": "pantarei",
-  "version": "2.2.0",
+  "version": "2.2.2",
   "description": "A resilient JavaScript Web Framework for the Distributed Web",
-  "main": "dist/pantarei.js",
+  "main": "index.js",
   "dependencies": {},
   "devDependencies": {},
   "scripts": {
-    "build": "rollup src/pantarei.js -o dist/pantarei.js",
+    "build": "rollup src/pantarei.js -o index.js",
     "test": "echo \"No test specified yet\" && exit 1"
   },
   "repository": {
