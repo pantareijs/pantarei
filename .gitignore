@@ -1,2 +1,4 @@
 .DS_Store
-temp
+.temp
+node_modules
+package-lock.json

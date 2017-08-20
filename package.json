@@ -1,12 +1,19 @@
 {
   "name": "pantarei",
-  "version": "2.2.2",
-  "description": "A resilient JavaScript Web Framework for the Distributed Web",
+  "version": "3.0.0",
+  "description": "The Web Framework for the Distributed Web",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "pantarei-directive-attribute": "0.0.1",
+    "pantarei-directive-classname": "0.0.1",
+    "pantarei-directive-event": "0.0.1",
+    "pantarei-directive-property": "0.0.1",
+    "pantarei-directive-repeat": "0.0.1",
+    "pantarei-directive-text": "0.0.1",
+    "pantarei-director": "0.0.1",
+  },
   "devDependencies": {},
   "scripts": {
-    "build": "rollup src/pantarei.js -o index.js",
     "test": "echo \"No test specified yet\" && exit 1"
   },
   "repository": {
@@ -15,15 +22,13 @@
   },
   "keywords": [
     "Pantarei",
-    "WebComponents"
+    "WebComponents",
+    "Framework"
   ],
-  "author": {
-    "name" : "Enrico Marino",
-    "url" : "http://enricomarino.com/"
-  },
+  "author": "Enrico Marino",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pantareijs/pantarei/issues"
   },
-  "homepage": "https://pantarei.js.org"
+  "homepage": "https://github.com/pantareijs/pantarei#readme"
 }
