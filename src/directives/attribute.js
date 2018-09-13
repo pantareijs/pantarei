@@ -43,6 +43,39 @@ export class DirectiveAttribute extends Directive {
   run (node, context) {
     let name = this.name
     let value = this.getter(context)
+
+    if (node.nodeName === 'A') {
+      if (name === 'href') {
+        if (value === undefined) {
+          node.removeAttribute(name)
+          return
+        }
+      }
+
+      if (name === 'target') {
+        if (value === undefined) {
+          node.removeAttribute(name)
+          return
+        }
+      }
+    }
+
+    if (node.nodeName === 'INPUT' || node.nodeName === 'BUTTON') {
+      if (name === 'disabled') {
+        if (!value) {
+          node.removeAttribute('disabled')
+          return
+        }
+
+        node.setAttribute('disabled', 'disabled')
+        return
+      }
+    }
+
+    if (!value) {
+      value = ''
+    }
+
     node.setAttribute(name, value)
   }
 
