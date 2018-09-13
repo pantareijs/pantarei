@@ -1,24 +1,37 @@
 import { Director } from './director'
 
-export class Component extends HTMLElement {
+class Component extends HTMLElement {
 
   static get is () { throw new Error('static getter `is` must be overridden') }
 
-  static get props () { return {} }
+  static get props () {
+    return {
+      data: { value: null }
+    }
+  }
 
   static get render_delay () { return 16 }
 
-  get template () { return '' }
+  static get style () { return '' }
+
+  static get template () { return '' }
+
+  static get _template () { return `<style>${this.style}</style>\n${this.template}` }
 
   constructor () {
     super()
     this._init()
   }
 
+  connected () {}
+
   connectedCallback () {
     if (window.ShadyCSS) {
       ShadyCSS.styleElement(this)
     }
+    // this._debounced_render()
+    this._render()
+    this.connected()
   }
 
   define_properties (descriptors) {
@@ -58,8 +71,18 @@ export class Component extends HTMLElement {
   }
 
   action (name, data) {
-    this.fire('action', { name: name, data: data })
-    return this
+    return new Promise((resolve, reject) => {
+
+      let callback = (err, res) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve(res)
+      }
+
+      this.fire('action', { name: name, data: data, callback: callback })
+    })
   }
 
   async (func) {
@@ -97,7 +120,6 @@ export class Component extends HTMLElement {
     this._init_refs()
     this._parse()
     this.ready()
-    this._render()
     this._initialized = true
   }
 
@@ -112,10 +134,15 @@ export class Component extends HTMLElement {
 
   _init_content () {
     this.attachShadow({ mode: 'open' })
-    let template_text = this.template
+    let template_text = this.constructor._template
     let template = document.createElement('template')
-    template.innerText = template_text
+    template.innerHTML = template_text
     let content = template.content
+
+    if (window.ShadyCSS) {
+      ShadyCSS.prepareTemplate(template, this.constructor.is)
+    }
+
     this.shadowRoot.appendChild(content)
   }
 
