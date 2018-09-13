@@ -1,7 +1,7 @@
 {
   "name": "pantarei",
-  "version": "3.1.0",
-  "description": "The Web Framework for the Distributed Web",
+  "version": "4.0.0",
+  "description": "The Front-end Web Framework for the Peer-to-Peer Web",
   "main": "dist/index.js",
   "dependencies": {},
   "devDependencies": {},
@@ -16,6 +16,9 @@
   "keywords": [
     "Pantarei",
     "WebComponents",
+    "UI",
+    "Front-end",
+    "Reactive",
     "Framework"
   ],
   "author": "Enrico Marino",

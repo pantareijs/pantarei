@@ -11,7 +11,7 @@ import { Component } from './component'
 
 export class Pantarei {
 
-  static get version () { return '3.0.0' }
+  static get version () { return '4.0.0' }
 
   static get directives () {
     return [
