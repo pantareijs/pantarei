@@ -2,47 +2,69 @@
 
 export class Director {
 
-  constructor (root_node) {
-    this.root_node = root_node
+  constructor (component) {
+    this.component = component
+    this.root = component.shadowRoot
+
+    this._observe = this._observe.bind(this)
+    this._observer = new MutationObserver(this._observe)
   }
 
-  parse (node) {
-    this.root_node = this.root_node || node
-    node._directed_nodes = node._directed_nodes || []
-    this._parse_node_directives(node)
-    this._parse_directed_nodes(node)
-  }
+  _observe (mutations) {
+    let to_render = false
 
-  _parse_directed_nodes (node) {
-    let walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
-    while (walker.nextNode()) {
-      let directed_node = walker.currentNode
-      this._parse_directed_node(node, directed_node)
-    }
-  }
+    for (let mutation of mutations) {
+      let nodes = mutation.addedNodes
 
-  _parse_directed_node (node, directed_node) {
-    this._parse_node_directives(directed_node)
-    if (directed_node._directives.length > 0) {
-      if (!node._directed_nodes.includes(directed_node)) {
-        node._directed_nodes.push(directed_node)
-        directed_node._director = node
+      for (let node of nodes) {
+        if (node.nodeType === 1) {
+          this._parse_node(node)
+          to_render = true
+        }
       }
+
+    }
+
+    if (to_render) {
+      this.component._renderer.render()
     }
   }
 
-  _parse_node_directives (node) {
-    node._directives = node._directives || []
-    node._root_node = this.root_node
-    if (!node.attributes) {
+  parse () {
+    this._parse_node(this.root)
+
+    let observing = {
+      attributes: false,
+      childList: true,
+      subtree: true
+    }
+
+    this._observer.observe(this.root, observing)
+  }
+
+  _parse_node (node) {
+    if (node._parsed) {
       return
     }
-    for (let attribute of Array.from(node.attributes)) {
-      this._parse_node_directive(node, attribute)
+    if (node.attributes) {
+      this._parse_directives(node)
+    }
+    let children = node.children
+    for (let child of children) {
+      this._parse_node(child)
+    }
+    node._parsed = true
+  }
+
+  _parse_directives (node) {
+    node._directives = []
+    let attributes = Array.from(node.attributes)
+    for (let attribute of attributes) {
+      this._parse_directive(node, attribute)
     }
   }
 
-  _parse_node_directive (node, attribute) {
+  _parse_directive (node, attribute) {
     let directive_constructors = this.constructor.directives
     for (let directive_constructor of directive_constructors) {
       let directive = directive_constructor.parse(node, attribute)
@@ -52,20 +74,31 @@ export class Director {
     }
   }
 
-  _run_directives (node, data, context) {
-    for (let directive of node._directives) {
-      directive.run(node, data, context)
-    }
+  render (data) {
+    this._render_node(this.root, data)
   }
 
-  render (node, data, context) {
-    data = data || node
-    context = context || node
-    node._context = context
-    this._run_directives(node, data, context)
+  _render_node (node, data) {
+    let new_data = {}
+    for (let prop in data) {
+      new_data[prop] = data[prop]
+    }
+    let scope = node.scope || {}
+    for (let prop in scope) {
+      new_data[prop] = scope[prop]
+    }
 
-    for (let directed_node of node._directed_nodes) {
-      this._run_directives(directed_node, data, context)
+    let directives = node._directives
+    if (directives) {
+      for (let directive of directives) {
+        directive.run(new_data)
+      }
+    }
+
+    let next = node.firstElementChild
+    while (next) {
+      this._render_node(next, new_data)
+      next = next.nextElementSibling
     }
   }
 

@@ -1,7 +1,7 @@
 'use strict'
 
-import { Directive } from './directive'
-import { getter } from '../utils/getter'
+import { Directive } from './directive.js'
+import { Expression } from '../expression.js'
 
 export class DirectiveEvent extends Directive {
 
@@ -27,41 +27,51 @@ export class DirectiveEvent extends Directive {
 
   constructor (options) {
     super(options)
-    let node = this.node = options.node
-    let root_node = this.root_node = node._root_node
-    let event_name = this.event_name = options.event_name
-    let handler_path = this.handler_path = options.handler_path
-    this.getter = getter(this.handler_path)
-
-    let unbubbled = ['focus', 'blur']
-    if (node.nodeName === 'INPUT' && unbubbled.includes(event_name)) {
-      let postfix = '-bubble'
-      let custom_event_name = event_name + postfix
-      node.addEventListener(event_name, (event) => {
-        let config = { bubbles: true, cancelable: true, detail: event }
-        let custom_event = new CustomEvent(custom_event_name, config)
-        node.dispatchEvent(custom_event)
-      })
-      event_name = this.event_name = custom_event_name
-    }
+    this.node = options.node
+    this.event_name = options.event_name
+    this.handler_path = options.handler_path
+    this.expression = new Expression(this.handler_path)
 
     this._on_event = this._on_event.bind(this)
-    root_node._listening = root_node._listening || {}
-    if (!root_node._listening[event_name]) {
-      root_node.addEventListener(event_name, this._on_event, false)
-      root_node._listening[event_name] = true
+
+    let unbubbled = ['focus', 'blur']
+    if (this.node.nodeName === 'INPUT' && unbubbled.includes(this.event_name)) {
+      let postfix = '-bubble'
+      let custom_event_name = this.event_name + postfix
+      this.node.addEventListener(this.event_name, (event) => {
+        let config = { bubbles: true, cancelable: true, detail: event }
+        let custom_event = new CustomEvent(custom_event_name, config)
+        this.node.dispatchEvent(custom_event)
+      })
+      this.event_name = custom_event_name
     }
+
+    let root = this.node
+    while (!root.host) {
+      root = root.parentNode
+    }
+    root = root.getRootNode()
+    let host = root.host
+    this.host = host
+
+    host._listening = host._listening || {}
+    if (!host._listening[this.event_name]) {
+      host.shadowRoot.addEventListener(this.event_name, this._on_event, false)
+      host._listening[this.event_name] = true
+    }
+
+    let event_listener = this.expression.eval(host)
+    this.node._listeners = this.node._listeners || {}
+    this.node._listeners[this.event_name] = event_listener
   }
 
-  run (node, data, context) {
-    node._listeners = node._listeners || {}
-    let object = this.root_node.host ? this.root_node.host : context
-    let event_listener = this.getter(object)
-    node._listeners[this.event_name] = event_listener
+  run (data, context) {
+    return
   }
 
   _on_event (event) {
-    let root_node = this.root_node
+    let host = this.host
+    let root = host.shadowRoot
 
     let target = event.target
     let event_type = event.type
@@ -79,8 +89,7 @@ export class DirectiveEvent extends Directive {
       if (listeners) {
         let listener = listeners[event_type]
         if (listener) {
-          let node = target.host ? target.host : root_node._context
-          listener.call(node, event, event.detail)
+          listener.call(host, event, event.detail)
         }
       }
 
@@ -92,7 +101,7 @@ export class DirectiveEvent extends Directive {
       if (!target) {
         break
       }
-      if (target === root_node) {
+      if (target === root) {
         break
       }
     }

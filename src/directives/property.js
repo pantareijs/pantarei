@@ -1,7 +1,7 @@
 'use strict'
 
-import { Directive } from './directive'
-import { getter } from '../utils/getter'
+import { Directive } from './directive.js'
+import { Expression } from '../expression.js'
 
 export class DirectiveProperty extends Directive {
 
@@ -37,25 +37,33 @@ export class DirectiveProperty extends Directive {
     this.node = options.node
     this.name = options.name
     this.path = options.path
-    this.getter = getter(this.path)
+    this.expression = new Expression(this.path)
+
+    let node_name = this.node.nodeName.toLowerCase()
+    let prop_name = this.name
+    let func_name = node_name + ' ' + prop_name
+    let handler = this[func_name]
+    if (handler) {
+      this.run = handler
+    }
   }
 
-  run (node, context) {
-    let name = this.name
-    let value = this.getter(context)
+  run (data) {
+    let value = this.expression.eval(data)
+    this.node[this.name] = value
+    this.value = value
+  }
 
-    if (name === 'checked' && node.nodeName === 'INPUT') {
-      node.checked = !!value
-      return
-    }
-    if (name === 'focus' && node.nodeName === 'INPUT') {
-      if (!!value) {
-        node.focus()
-      }
-      return
-    }
+  ['input checked'] (data) {
+    let value = this.expression.eval(data)
+    this.node.checked = !!value
+  }
 
-    node[name] = value
+  ['input focus'] () {
+    let value = this.expression.eval(data)
+    if (!!value) {
+      this.node.focus()
+    }
   }
 
 }

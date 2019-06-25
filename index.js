@@ -2,4 +2,4 @@
 
 import { Pantarei } from './src/index.js'
 
-self['Pantarei'] = Pantarei
+globalThis['Pantarei'] = Pantarei

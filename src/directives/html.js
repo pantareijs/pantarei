@@ -3,12 +3,12 @@
 import { Directive } from './directive.js'
 import { Expression } from '../expression.js'
 
-export class DirectiveText extends Directive {
+export class DirectiveHtml extends Directive {
 
-  static get type () { return 'text' }
+  static get type () { return 'html' }
 
   static match (attribute) {
-    return attribute.name === 'text'
+    return attribute.name === 'html'
   }
 
   static parse (node, attribute) {
@@ -29,21 +29,17 @@ export class DirectiveText extends Directive {
   }
 
   run (data) {
+    let node = this.node
     let value = this.expression.eval(data)
 
-    if (typeof value === 'undefined' || value === null) {
+    if (!value) {
       value = ''
     }
-
-    let new_text = '' + value
-
-    let old_text = this.node.innerText
-
-    if (new_text === old_text) {
+    if (value === this.prev) {
       return
     }
-
-    this.node.innerText = new_text
+    node.innerHTML = value
+    this.prev = value
   }
 
 }

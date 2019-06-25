@@ -1,7 +1,7 @@
 'use strict'
 
-import { Directive } from './directive'
-import { getter } from '../utils/getter'
+import { Directive } from './directive.js'
+import { Expression } from '../expression.js'
 
 export class DirectiveAttribute extends Directive {
 
@@ -37,46 +37,73 @@ export class DirectiveAttribute extends Directive {
     this.node = options.node
     this.name = options.name
     this.path = options.path
-    this.getter = getter(this.path)
+    this.expression = new Expression(this.path)
+
+    let node_name = this.node.nodeName.toLowerCase()
+    let attr_name = this.name
+    let func_name = node_name + ' ' + attr_name
+    let handler = this[func_name]
+    if (handler) {
+      this.run = handler
+    }
   }
 
-  run (node, context) {
+  run (data) {
+    let node = this.node
     let name = this.name
-    let value = this.getter(context)
-
-    if (node.nodeName === 'A') {
-      if (name === 'href') {
-        if (value === undefined) {
-          node.removeAttribute(name)
-          return
-        }
-      }
-
-      if (name === 'target') {
-        if (value === undefined) {
-          node.removeAttribute(name)
-          return
-        }
-      }
-    }
-
-    if (node.nodeName === 'INPUT' || node.nodeName === 'BUTTON') {
-      if (name === 'disabled') {
-        if (!value) {
-          node.removeAttribute('disabled')
-          return
-        }
-
-        node.setAttribute('disabled', 'disabled')
-        return
-      }
-    }
+    let value = this.expression.eval(data)
 
     if (!value) {
       value = ''
+      node.removeAttribute(name)
+      return
     }
 
     node.setAttribute(name, value)
+  }
+
+  ['a href'] (data) {
+    let value = this.expression.eval(data)
+
+    if (value === undefined) {
+      this.node.removeAttribute('href')
+      return
+    }
+
+    this.node.setAttribute('href', value)
+  }
+
+  ['a target'] (data) {
+    let value = this.expression.eval(data)
+
+    if (value === undefined) {
+      this.node.removeAttribute('target')
+      return
+    }
+
+    this.node.setAttribute('target', value)
+  }
+
+  ['input disabled'] (data) {
+    let value = this.expression.eval(data)
+
+    if (!value) {
+      this.node.removeAttribute('disabled')
+      return
+    }
+
+    this.node.setAttribute('disabled', 'disabled')
+  }
+
+  ['button disabled'] (data) {
+    let value = this.expression.eval(data)
+
+    if (!value) {
+      this.node.removeAttribute('disabled')
+      return
+    }
+
+    this.node.setAttribute('disabled', 'disabled')
   }
 
 }

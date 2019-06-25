@@ -1,12 +1,11 @@
 {
   "name": "pantarei",
   "version": "4.0.0",
-  "description": "The Front-end Web Framework for the Peer-to-Peer Web",
-  "main": "dist/index.js",
+  "description": "The Web Framework for the Distributed Web",
+  "main": "index.js",
   "dependencies": {},
   "devDependencies": {},
   "scripts": {
-    "build": "rollup index.js -o dist/pantarei.js",
     "test": "echo \"No test specified yet\" && exit 1"
   },
   "repository": {
@@ -16,9 +15,6 @@
   "keywords": [
     "Pantarei",
     "WebComponents",
-    "UI",
-    "Front-end",
-    "Reactive",
     "Framework"
   ],
   "author": "Enrico Marino",

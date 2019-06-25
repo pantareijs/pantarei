@@ -3,11 +3,11 @@
 import { Directive } from './directive.js'
 import { Expression } from '../expression.js'
 
-export class DirectiveClassName extends Directive {
+export class DirectiveStyle extends Directive {
 
-  static get type () { return 'class' }
+  static get type () { return 'style' }
 
-  static get _prefix () { return 'class.' }
+  static get _prefix () { return 'style.' }
 
   static match (attribute) {
     return attribute.name.startsWith(this._prefix)
@@ -47,7 +47,7 @@ export class DirectiveClassName extends Directive {
     let node = this.node
     let name = this.name
     let value = this.expression.eval(data)
-    node.classList.toggle(this.name, !!value)
+    node.style[name] = value
   }
 
 }

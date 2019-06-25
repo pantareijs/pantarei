@@ -14,7 +14,7 @@ export class Directive {
     throw new Error('static method `parse` must be overridden')
   }
 
-  run (node, context) {
+  run (data) {
     throw new Error('instance method `run` must be overridden')
   }
 
