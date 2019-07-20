@@ -8,7 +8,7 @@ export class App {
 
   static get defaults () {
     return {
-      components_path: 'components',
+      components_path: 'components/',
       container_name: 'app-container',
       controller_name: 'app-controller',
       root_id: 'root'
