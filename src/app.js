@@ -16,6 +16,7 @@ export class App {
   }
 
   constructor (config) {
+    config = config || {}
     let defaults = this.constructor.defaults
 
     let root = config.root || document.getElementById(defaults.root_id)
@@ -28,7 +29,9 @@ export class App {
     this.root = root
     this.root.app = this
 
-    let components_path = config.components_path || defaults.components_path
+    let path_name = location.pathname
+
+    let components_path = path_name + (config.components_path || defaults.components_path)
     this.register = new Register({ components_path })
 
     this.container_name = config.container_name || defaults.container_name
@@ -55,8 +58,11 @@ export class App {
     this.root.addEventListener('ready', this._on_ready_component.bind(this), true)
     this.root.addEventListener('disconnected', this._on_disconnect_component.bind(this), true)
 
-    this.router.events.on('change_route', this.on_change_route.bind(this))
-    this.router.start()
+    if (this.router) {
+      this.router.events.on('change_route', this.on_change_route.bind(this))
+      this.router.start()
+    }
+
   }
 
   _on_ready_component (event) {
