@@ -6,8 +6,19 @@ import { Register } from './register.js'
 
 export class App {
 
+  static get defaults () {
+    return {
+      components_path: 'components',
+      container_name: 'app-container',
+      controller_name: 'app-controller',
+      root_id: 'root'
+    }
+  }
+
   constructor (config) {
-    let root = config.root || document.getElementById('root')
+    let defaults = this.constructor.defaults
+
+    let root = config.root || document.getElementById(defaults.root_id)
     if (!root) {
       throw new Error('root is undefined')
     }
@@ -17,13 +28,13 @@ export class App {
     this.root = root
     this.root.app = this
 
-    let components_path = config.components_path
+    let components_path = config.components_path || defaults.components_path
     this.register = new Register({ components_path })
 
-    this.container_name = config.container_name || 'app-container'
+    this.container_name = config.container_name || defaults.container_name
     this.container_path = components_path + this.container_name
 
-    this.controller_name = config.controller_name || 'app-controller'
+    this.controller_name = config.controller_name || defaults.container_name
     this.controller_path = components_path + this.controller_name
 
     this.router = config.router
