@@ -34,7 +34,7 @@ export class App {
     this.container_name = config.container_name || defaults.container_name
     this.container_path = components_path + this.container_name
 
-    this.controller_name = config.controller_name || defaults.container_name
+    this.controller_name = config.controller_name || defaults.controller_name
     this.controller_path = components_path + this.controller_name
 
     this.router = config.router
