@@ -44,4 +44,4 @@ Pantarei.Controller = Controller
 
 Pantarei.App = App
 
-export Pantarei
+export { Pantarei }
