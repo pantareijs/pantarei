@@ -22,9 +22,6 @@ export class DirectiveRepeat extends Directive {
     if (!this.match(attribute)) {
       return
     }
-    if (node.nodeName.toLowerCase() !== 'template') {
-      return
-    }
 
     let items_path = node.getAttribute('repeat') || this.items_path
     let item_name = node.getAttribute('item') || this.default.item_name
@@ -42,15 +39,11 @@ export class DirectiveRepeat extends Directive {
     this.item_name = options.item_name
     this.index_name = options.index_name
 
-    this.content = this.node.content.children[0]
+    this.content = this.node.firstElementChild
 
-    this.wrapper = document.createElement('scope')
-    this.wrapper.style.display = 'contents'
-    this.node.parentNode.insertBefore(this.wrapper, this.node.nextSibling)
-    // this.container = document.createElement('scope')
-    // this.container.style.display = 'contents'
-    // this.node.parentNode.insertBefore(this.container, this.node.nextSibling)
-    // this.container.appendChild(this.node)
+    this.template = document.createElement('template')
+    this.node.insertBefore(this.template, this.content)
+    this.template.content.appendChild(this.content)
   }
 
   run (data, context) {
@@ -79,7 +72,7 @@ export class DirectiveRepeat extends Directive {
       }
     }
 
-    node._items = node._new_items//.slice()
+    node._items = node._new_items
   }
 
   _create_node (node, index, data, context) {
@@ -94,8 +87,7 @@ export class DirectiveRepeat extends Directive {
   }
 
   _insert_node (node) {
-    // this.wrapper.appendChild(node)
-    this.wrapper.parentNode.insertBefore(node, this.wrapper)
+    this.template.parentNode.insertBefore(node, this.template)
   }
 
   _update_node (node, index, data, context) {
@@ -110,13 +102,6 @@ export class DirectiveRepeat extends Directive {
     scope[this.item_name] = item
     scope[this.index_name] = index
     child.scope = scope
-
-    // let detail = { index: index, data: scope, node: director_node }
-    // let config = { bubbles: true, cancelable: true, detail: detail }
-    // let event = new CustomEvent('render', config)
-    // node.dispatchEvent(event)
-
-    // this.director.render(director_node, new_data, context)
   }
 
   _remove_node (node, index) {

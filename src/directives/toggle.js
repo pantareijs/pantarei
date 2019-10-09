@@ -15,15 +15,11 @@ export class DirectiveToggle extends Directive {
     if (!this.match(attribute)) {
       return
     }
-    if (node.nodeName.toLowerCase() !== 'template') {
-      return
-    }
 
-    let content = node.content.children[0]
-    let director_node = document.importNode(content, true)
     let path = node.getAttribute('if')
 
-    let directive = new this({ node, path, director_node })
+    let directive = new this({ node, path })
+
     return directive
   }
 
@@ -33,31 +29,31 @@ export class DirectiveToggle extends Directive {
     this.path = options.path
     this.expression = new Expression(this.path)
 
-    this.content = this.node.content.children[0]
+    this.content = this.node.firstElementChild
 
-    this.wrapper = document.createElement('scope')
-    this.wrapper.style.display = 'contents'
-    this.node.parentNode.insertBefore(this.wrapper, this.node.nextSibling)
+    this.template = document.createElement('template')
+    this.node.insertBefore(this.template, this.content)
+    this.template.content.appendChild(this.content)
 
     this._created = false
     this._attached = false
   }
 
   run (data, context) {
-    let node = this.node
-    node._test = this.expression.eval(data) || false
+    let test = this.expression.eval(data) || false
 
-    if (node._test) {
+    if (test) {
       this._attach_node()
-    } else {
-      this._detach_node()
+      return
     }
+
+    this._detach_node()
   }
 
   _create_node () {
     let _node = this.content.cloneNode(true)
     this._node = _node
-    this.wrapper.parentNode.insertBefore(_node, this.wrapper)
+    this.template.parentNode.insertBefore(_node, this.template)
     this._created = true
   }
 

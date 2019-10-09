@@ -85,6 +85,41 @@ export class Component extends HTMLElement {
     return styles
   }
 
+  static get directives () { return {} }
+
+  static get directives_url () { return 'directives.json' }
+
+  static get _directives () {
+    if (!this._primise_directives) {
+      this._promise_directives = this._prepare_directives()
+    }
+    return this._promise_directives
+  }
+
+  static async _prepare_directives () {
+    let directives = this.directives
+    if (Object.keys(directives).length > 0) {
+      return
+    }
+    directives = this._fetch_directives()
+    return directives
+  }
+
+  static async _fetch_directives () {
+    let directives = {}
+    let base_url = this.base_url.replace('/index.js', '/')
+    let directives_url = base_url + this.directives_url
+
+    try {
+      let res = await fetch(directives_url)
+      directives = await res.json()
+    } catch (err) {
+
+    }
+
+    return directives
+  }
+
   static get components () { return [] }
 
   static get consumers () { return [] }
@@ -131,7 +166,7 @@ export class Component extends HTMLElement {
     this._director.parse()
 
     this._renderer.render()
-    // console.log(`${this.constructor.is} is attached`)
+
     this.fire('connected', this)
     this.connected()
   }
@@ -175,6 +210,7 @@ export class Component extends HTMLElement {
 
   async _init () {
     await this._init_content()
+    await this._init_directives()
     this._init_render()
     this._init_props()
     this._init_refs()
@@ -192,6 +228,24 @@ export class Component extends HTMLElement {
 
     this.attachShadow({ mode: 'open' })
     this.shadowRoot.appendChild(shadow)
+  }
+
+  async _init_directives () {
+    let directives = await this.constructor._directives
+    this._bind_directives(directives)
+  }
+
+  _bind_directives (directives) {
+    let root = this.shadowRoot
+    let selectors = Object.keys(directives)
+    for (let selector of selectors) {
+      let element = root.querySelector(selector)
+      let rules = directives[selector]
+      for (let key in rules) {
+        let value = rules[key]
+        element.setAttribute(key, value)
+      }
+    }
   }
 
   _init_render () {

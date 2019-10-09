@@ -4,30 +4,11 @@ import { Emitter } from './emitter.js'
 export class Router {
 
   constructor (config) {
-    this.routes = []
-    let routes = config.routes || []
-
-    this._add_routes(routes)
+    let root = config.route || []
+    this.root = new Route(root)
 
     this.events = new Emitter()
     this._on_hashchange = this._on_hashchange.bind(this)
-  }
-
-  _add_routes (routes) {
-    if (!routes) {
-      return
-    }
-    if (routes === null) {
-      return
-    }
-
-    let route = routes[0]
-    if (!route) {
-      return
-    }
-
-    this.root_node = new Route(route)
-    this.root_node.add_routes(route.routes)
   }
 
   start () {
@@ -55,7 +36,7 @@ export class Router {
     let url = event.newURL
     let path = url.substr(url.indexOf('#') + 1)
 
-    let matching = this.root_node.match(path)
+    let matching = this.root.match(path)
 
     if (matching.route) {
       this.events.emit('change_route', matching)
