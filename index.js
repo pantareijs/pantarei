@@ -1,5 +1,5 @@
 'use strict'
 
-import { Pantarei } from './src/index.js'
+import * as Pantarei from './src/index.js'
 
 window['Pantarei'] = Pantarei

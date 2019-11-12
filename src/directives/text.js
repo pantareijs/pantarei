@@ -31,7 +31,7 @@ export class DirectiveText extends Directive {
   run (data) {
     let value = this.expression.eval(data)
 
-    if (typeof value === 'undefined' || value === null) {
+    if (value === undefined || typeof value === 'undefined' || value === null) {
       value = ''
     }
 

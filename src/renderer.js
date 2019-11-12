@@ -2,10 +2,14 @@
 
 export class Renderer {
 
+  get fps () { return 16 }
+
+  get delay () { return 1000 / this.fps }
+
   constructor (component) {
     this.component = component
     this._render = this._render.bind(this)
-    this.render = this._debounce(this._render, 1000 / 16)
+    this.render = this._debounce(this._render, this.delay)
   }
 
   _render () {
@@ -13,22 +17,17 @@ export class Renderer {
   }
 
   _debounce (func, wait) {
-    wait = wait || 0
     let timeout
-    let waiting = false
 
-    let wrapper = () => {
-      waiting = false
-      func.call(this)
-      clearTimeout(timeout)
-    }
+    let debounced = function () {
+      let context = this
 
-    let debounced = () => {
-      if (waiting) {
-        return
+      let later = function () {
+        func.apply(context)
       }
-      waiting = true
-      timeout = setTimeout(wrapper, wait)
+
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
     }
 
     return debounced

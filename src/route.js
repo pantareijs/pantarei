@@ -1,33 +1,36 @@
+'use strict'
 
 export class Route {
 
-  constructor (route) {
-    this.name = route.name
-    this.param = route.param
-    this.component = route.component
-    this.data = route.data
+  constructor (config) {
+    this.name = config.name
+    this.param = config.param
+    this.component = config.component
+    this.data = config.data
 
-    this.children = new Map()
-    this.child = null
+    this.routes = new Map()
+    this.route = null
 
-    if (route.routes) {
-      this.add_routes(route.routes)
+    if (config.routes) {
+      this.add_routes(config.routes)
     }
   }
 
-  add_routes (routes) {
-    routes.forEach(this.add_route, this)
+  add_routes (configs) {
+    for (let config of configs) {
+      this.add_route(config)
+    }
   }
 
-  add_route (route) {
-    let child = new Route(route)
+  add_route (config) {
+    let route = new Route(config)
 
-    if (child.param) {
-      this.child = child
+    if (route.param) {
+      this.route = route
       return
     }
 
-    this.children.set(child.name, child)
+    this.routes.set(route.name, route)
   }
 
   match (path) {
@@ -48,36 +51,36 @@ export class Route {
 
   _match (context) {
     let path = context.path
+    let segments = context.segments
     let params = context.params
     let breadcrumbs = context.breadcrumbs
 
-    let segments = context.segments
-    let segment = segments[0]
-
-    if (!segment) {
+    if (!segments.length) {
       breadcrumbs.push(this)
       let route = this
       let matching = { path, params, breadcrumbs, route }
       return matching
     }
 
-    let rest = segments.slice(1)
+    let segment = segments.shift(1)
 
-    let child = this.children.get(segment)
-    if (child) {
+    let next_route = this.routes.get(segment)
+    if (next_route) {
       breadcrumbs.push(this)
-      return child._match({ path, segments: rest, params, breadcrumbs })
+      return next_route._match({ path, segments, params, breadcrumbs })
     }
 
-    child = this.child
-    if (child) {
-      params[child.param] = segment
+    next_route = this.route
+    if (next_route) {
       breadcrumbs.push(this)
-      return child._match({ path, segments: rest, params, breadcrumbs })
+      let param = next_route.param
+      params[param] = segment
+      return next_route._match({ path, segments, params, breadcrumbs })
     }
 
-    let has_children = this.children.size === 0
-    if (!has_children) {
+    let has_no_routes = this.routes.size === 0
+    if (has_no_routes) {
+      breadcrumbs.push(this)
       let route = this
       let matching = { path, params, breadcrumbs, route }
       return matching

@@ -33,7 +33,7 @@ export class Emitter {
   }
 
   static get_listeners(instance, event_name) {
-    const events = Emitter.events_map.get(instance)
+    const events = this.events_map.get(instance)
     if (!events.has(event_name)) {
       events.set(event_name, new Set())
     }
@@ -42,31 +42,31 @@ export class Emitter {
   }
 
   constructor () {
-    Emitter.any_map.set(this, new Set())
-    Emitter.events_map.set(this, new Map())
+    this.constructor.any_map.set(this, new Set())
+    this.constructor.events_map.set(this, new Map())
   }
 
   on (event_name, listener) {
-    Emitter.assert_event_name(event_name)
-    Emitter.assert_listener(listener)
+    this.constructor.assert_event_name(event_name)
+    this.constructor.assert_listener(listener)
 
-    let listeners = Emitter.get_listeners(this, event_name)
+    let listeners = this.constructor.get_listeners(this, event_name)
     listeners.add(listener)
     let unsubscribe = this.off.bind(this, event_name, listener)
     return unsubscribe
   }
 
   off (event_name, listener) {
-    Emitter.assert_event_name(event_name)
-    Emitter.assert_listener(listener)
+    this.constructor.assert_event_name(event_name)
+    this.constructor.assert_listener(listener)
 
-    let listeners = Emitter.get_listeners(this, event_name)
+    let listeners = this.constructor.get_listeners(this, event_name)
     listeners.delete(listener)
   }
 
   once (event_name, listener) {
-    Emitter.assert_event_name(event_name)
-    Emitter.assert_listener(listener)
+    this.constructor.assert_event_name(event_name)
+    this.constructor.assert_listener(listener)
 
     let wrapped_listener = (data) => {
       listener(data)
@@ -78,15 +78,15 @@ export class Emitter {
   }
 
   async emit (event_name, event_data) {
-    Emitter.assert_event_name(event_name)
+    this.constructor.assert_event_name(event_name)
 
-    const listeners = Emitter.get_listeners(this, event_name)
+    const listeners = this.constructor.get_listeners(this, event_name)
     const static_listeners = Array.from(listeners)
 
-    const any_listeners = Emitter.any_map.get(this)
+    const any_listeners = this.constructor.any_map.get(this)
     const static_any_listeners = Array.from(any_listeners)
 
-    await Emitter.resolved_promise
+    await this.constructor.resolved_promise
 
     let all_listeners = []
 
@@ -102,11 +102,11 @@ export class Emitter {
   }
 
   async emit_serial (event_name, eventData) {
-    Emitter.assert_event_name(event_name)
+    this.constructor.assert_event_name(event_name)
 
-    const listeners = Emitter.get_listeners(this, event_name)
+    const listeners = this.constructor.get_listeners(this, event_name)
     const static_listeners = [...listeners]
-    const any_listeners = Emitter.any_map.get(this)
+    const any_listeners = this.constructor.any_map.get(this)
     const staticAnyListeners = [...any_listeners]
 
     await resolvedPromise
@@ -125,31 +125,31 @@ export class Emitter {
   }
 
   on_any (listener) {
-    Emitter.assert_listener(listener)
+    this.constructor.assert_listener(listener)
 
-    let listeners = Emitter.any_map.get(this)
+    let listeners = this.constructor.any_map.get(this)
     listeners.add(listener)
     let unsubscribe = this.off_any.bind(this, listener)
     return unsubscribe
   }
 
   off_any (listener) {
-    Emitter.assert_listener(listener)
-    let listeners = Emitter.any_map.get(this)
+    this.constructor.assert_listener(listener)
+    let listeners = this.constructor.any_map.get(this)
     listeners.delete(listener)
   }
 
   clear (event_name) {
     if (typeof event_name === 'string') {
-      let listeners = Emitter.get_listeners(this, event_name)
+      let listeners = this.constructor.get_listeners(this, event_name)
       listeners.clear()
       return
     }
 
-    let any_listeners = Emitter.any_map.get(this)
+    let any_listeners = this.constructor.any_map.get(this)
     any_listeners.clear()
 
-    let events_listeners = Emitter.events_map.get(this).values()
+    let events_listeners = this.constructor.events_map.get(this).values()
     for (let event_listeners of events_listeners) {
       event_listeners.clear()
     }
@@ -157,16 +157,16 @@ export class Emitter {
 
   listener_count (event_name) {
     if (typeof event_name === 'string') {
-      return Emitter.any_map.get(this).size + Emitter.get_listeners(this, event_name).size
+      return this.constructor.any_map.get(this).size + this.constructor.get_listeners(this, event_name).size
     }
 
     if (typeof event_name !== 'undefined') {
-      Emitter.assert_event_name(event_name)
+      this.constructor.assert_event_name(event_name)
     }
 
-    let count = Emitter.any_map.get(this).size
+    let count = this.constructor.any_map.get(this).size
 
-    for (const value of Emitter.events_map.get(this).values()) {
+    for (const value of this.constructor.events_map.get(this).values()) {
       count += value.size
     }
 

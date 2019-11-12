@@ -11,6 +11,7 @@ export class App {
       components_path: 'components/',
       container_name: 'app-container',
       controller_name: 'app-controller',
+      router_name: 'app-router',
       root_id: 'root'
     }
   }
@@ -32,6 +33,7 @@ export class App {
     let path_name = location.pathname
 
     let components_path = path_name + (config.components_path || defaults.components_path)
+    this.components_path = components_path
     this.register = new Register({ components_path })
 
     this.container_name = config.container_name || defaults.container_name
@@ -40,7 +42,9 @@ export class App {
     this.controller_name = config.controller_name || defaults.controller_name
     this.controller_path = components_path + this.controller_name
 
-    this.router = config.router
+    this.router_name = config.router_name || defaults.router_name
+    this.router_path = components_path + this.router_name
+
     this.components = {}
   }
 
@@ -53,16 +57,20 @@ export class App {
     this.container = document.createElement(this.container_name)
     this.root.appendChild(this.container)
 
+    this.controller.container = this.container
+
     this.root.addEventListener('action', this._on_action.bind(this), true)
     this.root.addEventListener('connected', this._on_connect_component.bind(this), true)
     this.root.addEventListener('ready', this._on_ready_component.bind(this), true)
     this.root.addEventListener('disconnected', this._on_disconnect_component.bind(this), true)
 
-    if (this.router) {
-      this.router.events.on('change_route', this.on_change_route.bind(this))
-      this.router.start()
-    }
+    let router_module = await import(this.router_path + '/index.js')
+    let Router = router_module.default
+    Router.base_url = this.router_path
+    this.router = new Router()
 
+    this.router.events.on('change_route', this.on_change_route.bind(this))
+    this.router.start()
   }
 
   _on_ready_component (event) {
@@ -130,6 +138,7 @@ export class App {
     let Component = await this.register.get_component(component_name)
 
     let page = document.createElement(component_name)
+
     page.context = context
     this.attach(page)
   }

@@ -1,3 +1,5 @@
+'use strict'
+
 import { Emitter } from './emitter.js'
 
 export class Controller {
@@ -16,10 +18,14 @@ export class Controller {
   }
 
   update (data) {
-    this.data = Object.assign({}, this.data, data)
+    Object.assign(this.data, data)
 
-    if (this.page) {
-      this.page.data = this.data
+    if (this.container && this.container.data) {
+      Object.assign(this.container.data, this.data)
+    }
+
+    if (this.page && this.page.data) {
+      Object.assign(this.page.data, this.data)
     }
   }
 

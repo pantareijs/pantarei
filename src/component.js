@@ -7,8 +7,12 @@ export class Component extends HTMLElement {
 
   static get props () {
     return {
-      data: { value: null }
+      data: { value: {} }
     }
+  }
+
+  static get experiments () {
+    return {}
   }
 
   static get template () { return '' }
@@ -41,6 +45,7 @@ export class Component extends HTMLElement {
       let template = await res.text()
       return template
     } catch (err) {
+      console.warn(err)
       return ''
     }
   }
@@ -79,7 +84,7 @@ export class Component extends HTMLElement {
         let style = `<style>\n${text}\n</style>`
         styles = `${styles}\n\n${style}`
       } catch (err) {
-
+        console.warn(err)
       }
     }
     return styles
@@ -90,7 +95,7 @@ export class Component extends HTMLElement {
   static get directives_url () { return 'directives.json' }
 
   static get _directives () {
-    if (!this._primise_directives) {
+    if (!this._promise_directives) {
       this._promise_directives = this._prepare_directives()
     }
     return this._promise_directives
@@ -99,10 +104,10 @@ export class Component extends HTMLElement {
   static async _prepare_directives () {
     let directives = this.directives
     if (Object.keys(directives).length > 0) {
-      return
+      return Promise.resolve(directives)
     }
-    directives = this._fetch_directives()
-    return directives
+    let promise_directives = this._fetch_directives()
+    return promise_directives
   }
 
   static async _fetch_directives () {
@@ -114,7 +119,8 @@ export class Component extends HTMLElement {
       let res = await fetch(directives_url)
       directives = await res.json()
     } catch (err) {
-
+      console.warn(directives_url)
+      console.warn(err)
     }
 
     return directives
@@ -135,6 +141,10 @@ export class Component extends HTMLElement {
 
   _find_components () {
     this._components = new Set()
+
+    for (let component of this.constructor.components) {
+      this._components.add(component)
+    }
 
     this._find_component(this.shadowRoot)
   }
@@ -160,18 +170,19 @@ export class Component extends HTMLElement {
     this._find_components()
     this.fire('ready', this)
 
-    // this.register.get_components(this._components)
-
     this._director = new Director(this)
     this._director.parse()
 
     this._renderer.render()
 
     this.fire('connected', this)
-    this.connected()
+
+    requestAnimationFrame(() => {
+      this.connected()
+    })
   }
 
-  connected () {}
+  async connected () {}
 
   disconnectedCallback () {
     this.fire('disconnected', this)
@@ -210,11 +221,14 @@ export class Component extends HTMLElement {
 
   async _init () {
     await this._init_content()
-    await this._init_directives()
+    if (this.constructor.experiments.directives) {
+      await this._init_directives()
+    }
     this._init_render()
     this._init_props()
+    this._init_data()
     this._init_refs()
-    this.ready()
+    await this.ready()
   }
 
   async _init_content () {
@@ -250,6 +264,25 @@ export class Component extends HTMLElement {
 
   _init_render () {
     this._renderer = new Renderer(this)
+  }
+
+  _init_data () {
+    let component = this
+    this.data = this.data || {}
+    this._data = Object.assign({}, this.data)
+
+    this.data = new Proxy(this._data, {
+      set (target, key, value) {
+        target[key] = value
+        component._renderer.render()
+        return true
+      },
+      get (target, key) {
+        return target[key]
+      }
+    })
+
+    console.log(this.nodeName.toLowerCase(), 'data', 'ok')
   }
 
   _init_props () {
@@ -296,6 +329,6 @@ export class Component extends HTMLElement {
 
   render () {}
 
-  ready () {}
+  async ready () {}
 
 }
