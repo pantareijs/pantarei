@@ -16,6 +16,12 @@ export class App {
     }
   }
 
+  static async start (config) {
+    let app = new App(config)
+    await app.start()
+    return app
+  }
+
   constructor (config) {
     config = config || {}
     let defaults = this.constructor.defaults
@@ -147,13 +153,8 @@ export class App {
     this.page = page
     this.controller.page = this.page
 
-    if (this.controller.data) {
-      this.controller.data.page = {}
-    }
-
-    this.container.page = this.page
-
     this.container.appendChild(this.page)
+    this.container.page = this.page
 
     requestAnimationFrame(this.scroll)
   }

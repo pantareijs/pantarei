@@ -281,8 +281,6 @@ export class Component extends HTMLElement {
         return target[key]
       }
     })
-
-    console.log(this.nodeName.toLowerCase(), 'data', 'ok')
   }
 
   _init_props () {

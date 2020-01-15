@@ -40,7 +40,10 @@ export class Route {
     if (path.endsWith('/')) {
       path = path.substring(0, path.length - 1)
     }
-    let segments = path.split('/')
+    let segments = []
+    if (path.length) {
+      segments = path.split('/')
+    }
     let params = {}
     let breadcrumbs = []
 

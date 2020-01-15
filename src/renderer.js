@@ -9,11 +9,33 @@ export class Renderer {
   constructor (component) {
     this.component = component
     this._render = this._render.bind(this)
-    this.render = this._debounce(this._render, this.delay)
+    this.render = this._throttle(this._render, this.delay)
   }
 
   _render () {
     this.component._render()
+  }
+
+  _throttle (callback, wait, immediate = false) {
+    let timeout = null
+    let initialCall = true
+
+    return function() {
+      const callNow = immediate && initialCall
+      const next = () => {
+        callback.apply(this, arguments)
+        timeout = null
+      }
+
+      if (callNow) {
+        initialCall = false
+        next()
+      }
+
+      if (!timeout) {
+        timeout = setTimeout(next, wait)
+      }
+    }
   }
 
   _debounce (func, wait) {

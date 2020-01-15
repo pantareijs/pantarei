@@ -29,6 +29,11 @@ export class DirectiveEvent extends Directive {
     super(options)
     this.node = options.node
     this.event_name = options.event_name
+
+    if (this.node._listeners && this.node._listeners[this.event_name]) {
+      return
+    }
+
     this.handler_path = options.handler_path
     this.expression = new Expression(this.handler_path)
 
@@ -52,7 +57,7 @@ export class DirectiveEvent extends Directive {
     }
     root = root.getRootNode()
     let host = root.host
-    this.host = host
+    this._host = host
 
     host._listening = host._listening || {}
     if (!host._listening[this.event_name]) {
@@ -63,6 +68,7 @@ export class DirectiveEvent extends Directive {
     let event_listener = this.expression.eval(host)
     this.node._listeners = this.node._listeners || {}
     this.node._listeners[this.event_name] = event_listener
+    event_listener.host = host
   }
 
   run (data, context) {
@@ -70,7 +76,7 @@ export class DirectiveEvent extends Directive {
   }
 
   _on_event (event) {
-    let host = this.host
+    let host = this._host
     let root = host.shadowRoot
 
     let target = event.target
@@ -89,6 +95,7 @@ export class DirectiveEvent extends Directive {
       if (listeners) {
         let listener = listeners[event_type]
         if (listener) {
+          host = listener.host
           listener.call(host, event, event.detail)
         }
       }
