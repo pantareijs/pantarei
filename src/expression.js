@@ -1,6 +1,6 @@
 'use strict'
 
-export class Expression {
+export default class Expression {
 
   constructor (expression) {
     this.expression = expression
