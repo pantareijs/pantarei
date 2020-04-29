@@ -1,6 +1,8 @@
 'use strict'
 
-export class Route {
+import Path from './path.js'
+
+export default class Route {
 
   constructor (config) {
     this.name = config.name
@@ -9,24 +11,25 @@ export class Route {
     this.data = config.data
 
     this.routes = new Map()
-    this.route = null
+    this.dynamic_route = null
 
     if (config.routes) {
       this.add_routes(config.routes)
     }
   }
 
-  add_routes (configs) {
-    for (let config of configs) {
-      this.add_route(config)
+  add_routes (routes) {
+    for (let route of routes) {
+      this.add_route(route)
     }
   }
 
-  add_route (config) {
-    let route = new Route(config)
+  add_route (route) {
+    route = new this.constructor(route)
 
-    if (route.param) {
-      this.route = route
+    let has_param = route.param
+    if (has_param) {
+      this.dynamic_route = route
       return
     }
 
@@ -34,16 +37,7 @@ export class Route {
   }
 
   match (path) {
-    if (path.startsWith('/')) {
-      path = path.substring(1, path.length)
-    }
-    if (path.endsWith('/')) {
-      path = path.substring(0, path.length - 1)
-    }
-    let segments = []
-    if (path.length) {
-      segments = path.split('/')
-    }
+    let segments = Path.split(path)
     let params = {}
     let breadcrumbs = []
 
@@ -67,18 +61,22 @@ export class Route {
 
     let segment = segments.shift(1)
 
-    let next_route = this.routes.get(segment)
+    let next_route
+
+    next_route = this.routes.get(segment)
     if (next_route) {
       breadcrumbs.push(this)
-      return next_route._match({ path, segments, params, breadcrumbs })
+      let matching = next_route._match({ path, segments, params, breadcrumbs })
+      return matching
     }
 
-    next_route = this.route
+    next_route = this.dynamic_route
     if (next_route) {
       breadcrumbs.push(this)
       let param = next_route.param
       params[param] = segment
-      return next_route._match({ path, segments, params, breadcrumbs })
+      let matching = next_route._match({ path, segments, params, breadcrumbs })
+      return matching
     }
 
     let has_no_routes = this.routes.size === 0
