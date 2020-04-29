@@ -1,5 +1,7 @@
 'use strict'
 
-import * as Pantarei from './src/index.js'
+import Pantarei from './src/index.js'
 
 window['Pantarei'] = Pantarei
+
+export default Pantarei
