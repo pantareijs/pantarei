@@ -1,6 +1,6 @@
 'use strict'
 
-export class Directive {
+export default class Directive {
 
   static get type () {
     throw new Error('static property `type` must be overridden')
