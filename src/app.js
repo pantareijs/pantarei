@@ -1,10 +1,13 @@
 'use strict'
 
-import { Controller } from './controller.js'
-import { Router } from './router.js'
-import { Register } from './register.js'
+import Controller from './controller.js'
+import Location from './location.js'
+import Router from './router.js'
+import Navigator from './navigator.js'
+import Register from './register.js'
+import Path from './path.js'
 
-export class App {
+export default class App {
 
   static get defaults () {
     return {
@@ -36,7 +39,7 @@ export class App {
     this.root = root
     this.root.app = this
 
-    let path_name = location.pathname
+    let path_name = location.pathname.replace('index.html', '')
 
     let components_path = path_name + (config.components_path || defaults.components_path)
     this.components_path = components_path
@@ -66,17 +69,24 @@ export class App {
     this.controller.container = this.container
 
     this.root.addEventListener('action', this._on_action.bind(this), true)
-    this.root.addEventListener('connected', this._on_connect_component.bind(this), true)
     this.root.addEventListener('ready', this._on_ready_component.bind(this), true)
-    this.root.addEventListener('disconnected', this._on_disconnect_component.bind(this), true)
 
     let router_module = await import(this.router_path + '/index.js')
     let Router = router_module.default
     Router.base_url = this.router_path
     this.router = new Router()
 
-    this.router.events.on('change_route', this.on_change_route.bind(this))
-    this.router.start()
+    let location = new Location()
+    this.location = location
+
+    this.location.events.on('change', this.on_change_location.bind(this))
+    this.router.events.on('change', this.on_change_route.bind(this))
+
+    this.navigator = new Navigator()
+    this.navigator.events.on('change', this.on_change_route.bind(this))
+
+    // await this.router.start()
+    await this.location.start()
   }
 
   _on_ready_component (event) {
@@ -85,47 +95,34 @@ export class App {
     this.register.get_components(components)
   }
 
-  _on_connect_component (event) {
-    let component = event.detail
-    let prop_name = component.constructor.consumers
-
-    component[prop_name] = this.controller.data[prop_name]
-
-    let listener = (prop) => {
-      component[prop_name] = prop
-    }
-    let unsubscribe = this.controller.events.on(`dispatch ${prop_name}`, listener)
-    component._unsubscribe = unsubscribe
-  }
-
-  _on_disconnect_component (component) {
-    if (component._unsubscribe) {
-      component._unsubscribe()
-    }
-  }
-
   _on_action (event) {
     let detail = event.detail
+    this._call_action(detail)
+  }
+
+  async _call_action (detail) {
     let action = detail.name
     let handler = this.controller[action]
-
     if (!handler) {
       return
     }
 
+    let data = detail.data
     let callback = detail.callback
-    let params = detail.data
     let caller = detail.component
-    this._call_action(handler, params, caller, callback)
-  }
 
-  async _call_action (handler, params, caller, callback) {
     try {
-      let res = await handler.call(this.controller, params, caller)
+      let res = await handler.call(this.controller, data, caller)
       callback(null, res)
     } catch (err) {
       callback(err, null)
     }
+  }
+
+  async on_change_location (context) {
+    let path = context.path
+    // this.router.navigate(path)
+    this.navigator.navigate(path)
   }
 
   async on_change_route (context) {
@@ -133,43 +130,26 @@ export class App {
     let params = context.params
     let path = context.path
 
-    if (this._dest_path === path) {
+    if (this._current_path === path) {
       return
     }
-    this._dest_path = path
+    this._current_path = path
 
-    this.clear()
+    this.container.clear()
 
-    let component_name = route.component
-    let Component = await this.register.get_component(component_name)
+    let component = route.component
+    let component_name = route.component_name
+    if (typeof component === 'string') {
+      component_name = component
+      await this.register.get_component(component_name)
+    } else {
+      await this.register.define_component(component_name, component)
+    }
 
     let page = document.createElement(component_name)
-
     page.context = context
-    this.attach(page)
-  }
 
-  attach (page) {
-    this.page = page
-    this.controller.page = this.page
-
-    this.container.appendChild(this.page)
-    this.container.page = this.page
-
-    requestAnimationFrame(this.scroll)
-  }
-
-  clear () {
-    let container = this.container
-    let child
-    while (child = container.firstChild) {
-      child.remove()
-    }
-  }
-
-  scroll () {
-    document.body.scrollTo(0, 0)
-    window.scrollTo(0, 0)
+    this.container.attach(page)
   }
 
 }
