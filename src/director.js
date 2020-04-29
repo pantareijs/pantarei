@@ -1,6 +1,32 @@
 'use strict'
 
-export class Director {
+import DirectiveAttribute from './directives/attribute.js'
+import DirectiveClassName from './directives/classname.js'
+import DirectiveData from './directives/data.js'
+import DirectiveEvent from './directives/event.js'
+import DirectiveProperty from './directives/property.js'
+import DirectiveRepeat from './directives/repeat.js'
+import DirectiveStyle from './directives/style.js'
+import DirectiveToggle from './directives/toggle.js'
+import DirectiveText from './directives/text.js'
+import DirectiveHtml from './directives/html.js'
+
+export default class Director {
+
+  static get directives () {
+    return [
+      DirectiveAttribute,
+      DirectiveClassName,
+      DirectiveData,
+      DirectiveEvent,
+      DirectiveProperty,
+      DirectiveRepeat,
+      DirectiveStyle,
+      DirectiveToggle,
+      DirectiveText,
+      DirectiveHtml
+    ]
+  }
 
   constructor (component) {
     this.component = component
@@ -11,6 +37,8 @@ export class Director {
   }
 
   _observe (mutations) {
+    let data = this.component.data
+
     let to_render = false
 
     for (let mutation of mutations) {
@@ -33,31 +61,36 @@ export class Director {
   parse () {
     this._parse_node(this.root)
 
-    let observing = {
+    this._observer.observe(this.root, {
       attributes: false,
       childList: true,
       subtree: true
-    }
-
-    this._observer.observe(this.root, observing)
+    })
   }
 
-  _parse_node (node) {
+  _parse_node (node, recursive=true) {
     if (node._parsed) {
       return
     }
     if (node.attributes) {
       this._parse_directives(node)
     }
-    let children = node.children
-    for (let child of children) {
-      this._parse_node(child)
+    if (!recursive) {
+      return
     }
+    let children = node.children
+    this._parse_nodes(children, recursive)
     node._parsed = true
   }
 
+  _parse_nodes (nodes, recursive=true) {
+    for (let node of nodes) {
+      this._parse_node(node, recursive)
+    }
+  }
+
   _parse_directives (node) {
-    node._directives = []
+    node._directives = node._directives || []
     let attributes = Array.from(node.attributes)
     for (let attribute of attributes) {
       this._parse_directive(node, attribute)
@@ -74,32 +107,37 @@ export class Director {
     }
   }
 
-  render (data) {
-    this._render_node(this.root, data)
+  render () {
+    let node = this.root
+    let data = this.component.data
+    this._render_node(node, data)
   }
 
-  _render_node (node, data) {
-    let new_data = {}
-    for (let prop in data) {
-      new_data[prop] = data[prop]
+  _render_node (node, data, recursive=true) {
+    this._render_directives(node, data)
+    if (!recursive) {
+      return
     }
+    let nodes = node.children
+    this._render_nodes(nodes, data, recursive)
+  }
+
+  _render_nodes (nodes, data, recursive=true) {
+    for (let node of nodes) {
+      this._render_node(node, data, recursive)
+    }
+  }
+
+  _render_directives (node, data) {
+    let directives = node._directives || []
+    for (let directive of directives) {
+      this._render_directive(node, directive, data)
+    }
+  }
+
+  _render_directive (node, directive, data) {
     let scope = node.scope || {}
-    for (let prop in scope) {
-      new_data[prop] = scope[prop]
-    }
-
-    let directives = node._directives
-    if (directives) {
-      for (let directive of directives) {
-        directive.run(new_data)
-      }
-    }
-
-    let next = node.firstElementChild
-    while (next) {
-      this._render_node(next, new_data)
-      next = next.nextElementSibling
-    }
+    directive.run({ data, scope })
   }
 
 }
