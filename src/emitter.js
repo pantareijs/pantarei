@@ -1,10 +1,6 @@
 'use strict'
 
-export class Emitter {
-
-  static get resolved_promise () {
-    return Promise.resolve()
-  }
+export default class Emitter {
 
   static get any_map () {
     if (!this._any_map) {
@@ -20,15 +16,15 @@ export class Emitter {
     return this._events_map
   }
 
-  static assert_event_name (event_name) {
-    if (typeof event_name !== 'string') {
-      throw new TypeError('event_name must be a string')
+  static assert_string (param) {
+    if (typeof param !== 'string') {
+      throw new TypeError('param must be a string')
     }
   }
 
-  static assert_listener (listener) {
-    if (typeof listener !== 'function') {
-      throw new TypeError('listener must be a function')
+  static assert_function (param) {
+    if (typeof param !== 'function') {
+      throw new TypeError('param must be a function')
     }
   }
 
@@ -47,8 +43,8 @@ export class Emitter {
   }
 
   on (event_name, listener) {
-    this.constructor.assert_event_name(event_name)
-    this.constructor.assert_listener(listener)
+    this.constructor.assert_string(event_name)
+    this.constructor.assert_function(listener)
 
     let listeners = this.constructor.get_listeners(this, event_name)
     listeners.add(listener)
@@ -57,16 +53,16 @@ export class Emitter {
   }
 
   off (event_name, listener) {
-    this.constructor.assert_event_name(event_name)
-    this.constructor.assert_listener(listener)
+    this.constructor.assert_string(event_name)
+    this.constructor.assert_function(listener)
 
     let listeners = this.constructor.get_listeners(this, event_name)
     listeners.delete(listener)
   }
 
   once (event_name, listener) {
-    this.constructor.assert_event_name(event_name)
-    this.constructor.assert_listener(listener)
+    this.constructor.assert_string(event_name)
+    this.constructor.assert_function(listener)
 
     let wrapped_listener = (data) => {
       listener(data)
@@ -78,7 +74,7 @@ export class Emitter {
   }
 
   async emit (event_name, event_data) {
-    this.constructor.assert_event_name(event_name)
+    this.constructor.assert_string(event_name)
 
     const listeners = this.constructor.get_listeners(this, event_name)
     const static_listeners = Array.from(listeners)
@@ -86,9 +82,7 @@ export class Emitter {
     const any_listeners = this.constructor.any_map.get(this)
     const static_any_listeners = Array.from(any_listeners)
 
-    await this.constructor.resolved_promise
-
-    let all_listeners = []
+    await Promise.resolve()
 
     let filtered_static_listeners = static_listeners
         .filter(listener => listeners.has(listener))
@@ -98,18 +92,20 @@ export class Emitter {
         .filter(listener => listeners.has(listener))
         .map(listener => listener(event_name, event_data))
 
-    return Promise.all(all_listeners)
+    let all_listeners = filtered_static_listeners.concat(filtered_any_static_listeners)
+
+    await Promise.all(all_listeners)
   }
 
-  async emit_serial (event_name, eventData) {
-    this.constructor.assert_event_name(event_name)
+  async emit_serial (event_name, event_data) {
+    this.constructor.assert_string(event_name)
 
     const listeners = this.constructor.get_listeners(this, event_name)
-    const static_listeners = [...listeners]
+    const static_listeners = listeners.slice()
     const any_listeners = this.constructor.any_map.get(this)
-    const staticAnyListeners = [...any_listeners]
+    const staticAnyListeners = any_listeners.slice()
 
-    await resolvedPromise
+    await Promise.resolve()
 
     for (const listener of static_listeners) {
       if (listeners.has(listener)) {
@@ -125,7 +121,7 @@ export class Emitter {
   }
 
   on_any (listener) {
-    this.constructor.assert_listener(listener)
+    this.constructor.assert_function(listener)
 
     let listeners = this.constructor.any_map.get(this)
     listeners.add(listener)
@@ -134,7 +130,7 @@ export class Emitter {
   }
 
   off_any (listener) {
-    this.constructor.assert_listener(listener)
+    this.constructor.assert_function(listener)
     let listeners = this.constructor.any_map.get(this)
     listeners.delete(listener)
   }
@@ -155,13 +151,18 @@ export class Emitter {
     }
   }
 
-  listener_count (event_name) {
+  count (event_name) {
     if (typeof event_name === 'string') {
-      return this.constructor.any_map.get(this).size + this.constructor.get_listeners(this, event_name).size
+      let any_listeners = this.constructor.any_map.get(this)
+      let any_listeners_count = any_listeners.size
+      let event_listeners = this.constructor.get_listeners(this, event_name)
+      let event_listeners_count = event_listeners.size
+      let count = any_listeners_count + event_listeners_count
+      return count
     }
 
     if (typeof event_name !== 'undefined') {
-      this.constructor.assert_event_name(event_name)
+      this.constructor.assert_string(event_name)
     }
 
     let count = this.constructor.any_map.get(this).size
