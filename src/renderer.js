@@ -1,6 +1,6 @@
 'use strict'
 
-export class Renderer {
+export default class Renderer {
 
   get fps () { return 16 }
 
@@ -18,17 +18,17 @@ export class Renderer {
 
   _throttle (callback, wait, immediate = false) {
     let timeout = null
-    let initialCall = true
+    let initial_call = true
 
     return function() {
-      const callNow = immediate && initialCall
+      const call_now = immediate && initial_call
       const next = () => {
         callback.apply(this, arguments)
         timeout = null
       }
 
-      if (callNow) {
-        initialCall = false
+      if (call_now) {
+        initial_call = false
         next()
       }
 
