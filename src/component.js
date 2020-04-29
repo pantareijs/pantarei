@@ -1,9 +1,9 @@
 'use strict'
 
-import { Director } from './director.js'
-import { Renderer } from './renderer.js'
+import Director from './director.js'
+import Renderer from './renderer.js'
 
-export class Component extends HTMLElement {
+export default class Component extends HTMLElement {
 
   static get props () {
     return {
