@@ -1,9 +1,9 @@
 'use strict'
 
-import { Directive } from './directive.js'
-import { Expression } from '../expression.js'
+import Directive from './directive.js'
+import Expression from '../expression.js'
 
-export class DirectiveClassName extends Directive {
+export default class ClassDirective extends Directive {
 
   static get type () { return 'class' }
 
