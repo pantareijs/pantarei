@@ -1,16 +1,19 @@
 'use strict'
 
-import { Directive } from './directive.js'
-import { Expression } from '../expression.js'
+import Directive from './directive.js'
+import Expression from '../expression.js'
 
-export class DirectiveRepeat extends Directive {
+export default class RepeatDirective extends Directive {
 
   static get type () { return 'repeat' }
 
   static get default () {
     return {
+      items_path: 'data.items',
       item_name: 'item',
-      index_name: 'index'
+      index_name: 'index',
+      key_name: 'key',
+      value_name: 'value'
     }
   }
 
@@ -23,11 +26,13 @@ export class DirectiveRepeat extends Directive {
       return
     }
 
-    let items_path = node.getAttribute('repeat') || this.items_path
+    let items_path = node.getAttribute('repeat') || this.default.items_path
     let item_name = node.getAttribute('item') || this.default.item_name
     let index_name = node.getAttribute('index') || this.default.index_name
+    let key_name = node.getAttribute('key') || this.default.key_name
+    let value_name = node.getAttribute('value') || this.default.value_name
 
-    let directive = new this({ node, items_path, item_name, index_name })
+    let directive = new this({ node, items_path, item_name, index_name, key_name, value_name })
     return directive
   }
 
@@ -38,6 +43,8 @@ export class DirectiveRepeat extends Directive {
     this.expression = new Expression(this.items_path)
     this.item_name = options.item_name
     this.index_name = options.index_name
+    this.key_name = options.key_name
+    this.value_name = options.value_name
 
     this.content = this.node.firstElementChild
 
@@ -46,53 +53,55 @@ export class DirectiveRepeat extends Directive {
     this.template.content.appendChild(this.content)
   }
 
-  run (data, context) {
+  run (data) {
     let node = this.node
     node._nodes = node._nodes || []
-    node._items = node._items || []
+
     node._new_items = this.expression.eval(data) || []
 
-    let items_count = node._items.length
+    let items_count = node._nodes.length
     let new_items_count = node._new_items.length
 
     if (new_items_count < items_count) {
       for (let index = 0; index < new_items_count; index++) {
-        this._update_node(node, index, data, context)
+        this._update_child(index, data)
       }
       for (let index = new_items_count; index < items_count; index++) {
-        this._remove_node(node, index)
+        this._remove_child(index)
       }
     }
     else {
       for (let index = 0; index < items_count; index++) {
-        this._update_node(node, index, data, context)
+        this._update_child(index, data)
       }
       for (let index = items_count; index < new_items_count; index++) {
-        this._create_node(node, index, data, context)
+        this._create_child(index, data)
       }
     }
 
     node._items = node._new_items
   }
 
-  _create_node (node, index, data, context) {
+  _create_child (index, data) {
+    let node = this.node
+    let children = node._nodes
     let child = this.content.cloneNode(true)
-    node._nodes[index] = child
 
-    this._insert_node(child)
-
-    this._update_node(node, index, data, context)
+    children[index] = child
+    this._update_child(index, data)
+    this._insert_child(child)
 
     return child
   }
 
-  _insert_node (node) {
-    this.template.parentNode.insertBefore(node, this.template)
+  _insert_child (child) {
+    this.template.parentNode.insertBefore(child, this.template)
   }
 
-  _update_node (node, index, data, context) {
-    let nodes = node._nodes
-    let child = nodes[index]
+  _update_child (index, data) {
+    let node = this.node
+    let children = node._nodes
+    let child = children[index]
     if (!child) {
       return
     }
@@ -102,16 +111,22 @@ export class DirectiveRepeat extends Directive {
     scope[this.item_name] = item
     scope[this.index_name] = index
     child.scope = scope
+
+    return child
   }
 
-  _remove_node (node, index) {
-    let nodes = node._nodes
-    let child = nodes[index]
+  _remove_child (index) {
+    let node = this.node
+    let children = node._nodes
+    let child = children[index]
     if (!child) {
       return
     }
+
     child.remove()
-    nodes[index] = null
+    children[index] = null
+
+    return child
   }
 
 }
