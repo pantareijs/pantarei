@@ -1,6 +1,8 @@
 'use strict'
 
-export class Register {
+import Component from './component.js'
+
+export default class Register {
 
   constructor (config) {
     this.components_path = config.components_path
@@ -31,30 +33,31 @@ export class Register {
   }
 
   async _load_component (component_name) {
-    let component = this._components[component_name]
-    if (component) {
-      return component
+    let component_constructor = this._components[component_name]
+    if (component_constructor) {
+      return component_constructor
     }
 
+    let module_url = this.get_component_url(component_name)
     try {
-      let module_url = this.get_component_url(component_name)
       let module_obj = await import(module_url)
-      component = module_obj.default
+      component_constructor = module_obj.default
     } catch (error) {
-      component = (class Component extends Pantarei.Component {})
+      component_constructor = (class extends Component {})
     }
 
-    this.define_component(component_name, component)
-    return component
+    component_constructor.base_url = module_url
+    this.define_component(component_name, component_constructor)
+    return component_constructor
   }
 
-  define_component (component_name, component) {
+  define_component (component_name, component_constructor) {
     try {
       if (!window.customElements.get(component_name)) {
-        component.base_url = this.components_path + component_name + '/'
-        window.customElements.define(component_name, component)
+        // component_constructor.base_url = this.components_path + component_name + '/'
+        window.customElements.define(component_name, component_constructor)
       }
-      this._components[component_name] = component
+      this._components[component_name] = component_constructor
     } catch (err) {
       console.log(err)
     }
