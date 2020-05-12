@@ -1,6 +1,7 @@
 'use strict'
 
 import Component from './component.js'
+import Path from './path.js'
 
 export default class Register {
 
@@ -12,7 +13,8 @@ export default class Register {
   }
 
   get_component_url (component_name) {
-    return this.components_path + component_name + '/index.js'
+    let url = Path.concat(this.components_path, component_name, 'index.js')
+    return url
   }
 
   get_components (components) {

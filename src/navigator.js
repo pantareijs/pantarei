@@ -12,6 +12,10 @@ export default class Navigator {
     this.pages_root = 'pages/'
   }
 
+  async start () {
+    this._started = true
+  }
+
   async match (path) {
     let base_root = location.pathname.replace('index.html', '')
 

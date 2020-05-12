@@ -15,7 +15,8 @@ export default class App {
       container_name: 'app-container',
       controller_name: 'app-controller',
       router_name: 'app-router',
-      root_id: 'root'
+      root_id: 'root',
+      navigate: false
     }
   }
 
@@ -26,10 +27,9 @@ export default class App {
   }
 
   constructor (config) {
-    config = config || {}
-    let defaults = this.constructor.defaults
+    config = Object.assign(this.constructor.defaults, config)
 
-    let root = config.root || document.getElementById(defaults.root_id)
+    let root = config.root || document.getElementById(config.root_id)
     if (!root) {
       throw new Error('root is undefined')
     }
@@ -41,24 +41,25 @@ export default class App {
 
     let path_name = location.pathname.replace('index.html', '')
 
-    let components_path = path_name + (config.components_path || defaults.components_path)
+    let components_path = Path.concat(path_name, config.components_path)
     this.components_path = components_path
     this.register = new Register({ components_path })
 
-    this.container_name = config.container_name || defaults.container_name
-    this.container_path = components_path + this.container_name
+    this.container_name = config.container_name
 
-    this.controller_name = config.controller_name || defaults.controller_name
-    this.controller_path = components_path + this.controller_name
+    this.controller_name = config.controller_name
+    this.controller_path = Path.concat(this.components_path, this.controller_name, 'index.js')
 
-    this.router_name = config.router_name || defaults.router_name
-    this.router_path = components_path + this.router_name
+    this.router_name = config.router_name
+    this.router_path = Path.concat(this.components_path, this.router_name, 'index.js')
+
+    this.navigate = config.navigate
 
     this.components = {}
   }
 
   async start () {
-    let controller_module = await import(this.controller_path + '/index.js')
+    let controller_module = await import(this.controller_path)
     let Controller = controller_module.default
     this.controller = new Controller()
 
@@ -71,10 +72,14 @@ export default class App {
     this.root.addEventListener('action', this._on_action.bind(this), true)
     this.root.addEventListener('ready', this._on_ready_component.bind(this), true)
 
-    let router_module = await import(this.router_path + '/index.js')
-    let Router = router_module.default
-    Router.base_url = this.router_path
-    this.router = new Router()
+    if (this.navigate) {
+      this.router = new Navigator()
+    } else {
+      let router_module = await import(this.router_path)
+      let Router = router_module.default
+      Router.base_url = this.router_path
+      this.router = new Router()
+    }
 
     let location = new Location()
     this.location = location
@@ -82,10 +87,7 @@ export default class App {
     this.location.events.on('change', this.on_change_location.bind(this))
     this.router.events.on('change', this.on_change_route.bind(this))
 
-    this.navigator = new Navigator()
-    this.navigator.events.on('change', this.on_change_route.bind(this))
-
-    // await this.router.start()
+    await this.router.start()
     await this.location.start()
   }
 
@@ -97,22 +99,16 @@ export default class App {
 
   _on_action (event) {
     let detail = event.detail
-    this._call_action(detail)
+    this._action(detail)
   }
 
-  async _call_action (detail) {
-    let action = detail.name
-    let handler = this.controller[action]
-    if (!handler) {
-      return
-    }
-
-    let data = detail.data
+  async _action (detail) {
     let callback = detail.callback
-    let caller = detail.component
+    let name = detail.name
+    let data = detail.data
 
     try {
-      let res = await handler.call(this.controller, data, caller)
+      let res = await this.controller.action(name, data)
       callback(null, res)
     } catch (err) {
       callback(err, null)
@@ -121,8 +117,7 @@ export default class App {
 
   async on_change_location (context) {
     let path = context.path
-    // this.router.navigate(path)
-    this.navigator.navigate(path)
+    this.router.navigate(path)
   }
 
   async on_change_route (context) {

@@ -2,6 +2,7 @@
 
 import Route from './route.js'
 import Emitter from './emitter.js'
+import Path from './path.js'
 
 export default class Router {
 
@@ -36,8 +37,8 @@ export default class Router {
   }
 
   static async _fetch_routes () {
-    let base_url = this.base_url
-    let routes_url = base_url + '/' + this.routes_url
+    let base_url = this.base_url.replace('index.js', '')
+    let routes_url = Path.concat(base_url, this.routes_url)
     try {
       let res = await fetch(routes_url)
       let routes = await res.json()
@@ -55,15 +56,15 @@ export default class Router {
   async start () {
     let routes = await this.constructor._routes
 
-    let root = routes.find(route => route.home)
-    if (!root) {
-      root = routes.find(route => route.name === 'home')
+    let root
+    if (Array.isArray(routes)) {
+      let is_root = (route) => { return route.home || route.name === 'home' }
+      root = routes.find(is_route) || routes[0]
+      let children = routes.filter(route => route != root)
+      root.routes = children
+    } else {
+      root = routes
     }
-    if (!root) {
-      root = routes[0]
-    }
-    let children = routes.filter(route => route != root)
-    root.routes = children
 
     this.root = new Route(root)
   }

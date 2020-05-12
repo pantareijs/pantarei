@@ -6,9 +6,19 @@ export default class Path {
     if (!path) {
       return path
     }
+    path = this.unslash_start(path)
+    path = this.unslash_end(path)
+    return path
+  }
+
+  static unslash_start (path) {
     while (path.startsWith('/')) {
       path = path.slice(1)
     }
+    return path
+  }
+
+  static unslash_end (path) {
     while (path.endsWith('/')) {
       path = path.slice(0, -1)
     }
@@ -28,7 +38,13 @@ export default class Path {
   }
 
   static join (...parts) {
-    parts = parts.map(this.unslash)
+    parts = parts.map(this.unslash, this)
+    let path = parts.join('/')
+    return path
+  }
+
+  static concat (...parts) {
+    parts = parts.map(this.unslash_end, this)
     let path = parts.join('/')
     return path
   }
