@@ -39,10 +39,11 @@ export default class App {
     this.root = root
     this.root.app = this
 
+    let protocol = location.protocol + '//'
     let host = location.host
     let path_name = location.pathname.replace('index.html', '')
 
-    let components_path = Path.join(host, path_name, config.components_path)
+    let components_path = protocol + Path.join(host, path_name, config.components_path)
     this.components_path = components_path
     this.register = new Register({ components_path })
 
