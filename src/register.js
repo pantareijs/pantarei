@@ -13,7 +13,7 @@ export default class Register {
   }
 
   get_component_url (component_name) {
-    let url = Path.concat(this.components_path, component_name, 'index.js')
+    let url = Path.join(this.components_path, component_name, 'index.js')
     return url
   }
 

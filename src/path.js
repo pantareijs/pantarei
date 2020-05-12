@@ -43,6 +43,43 @@ export default class Path {
     return path
   }
 
+  static normalize (path) {
+    let parts = path.split('/')
+    path = this.join(...parts)
+    return path
+  }
+
+  static join (...parts) {
+    let new_parts = []
+    for (let part of parts) {
+      let subparts = part.split("/")
+      new_parts = new_parts.concat(subparts)
+    }
+
+    let start = ""
+    if (new_parts[0] === "") {
+      start = "/"
+    }
+
+    let stack = []
+    for (let part of new_parts) {
+      if (part === "") {
+        continue
+      }
+      if (part === ".") {
+        continue
+      }
+      if (part === "..") {
+        stack.pop()
+        continue
+      }
+      stack.push(part)
+    }
+
+    let path = start + stack.join("/")
+    return path
+  }
+
   static concat (...parts) {
     parts = parts.map(this.unslash_end, this)
     let path = parts.join('/')

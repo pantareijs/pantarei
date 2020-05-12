@@ -42,17 +42,17 @@ export default class App {
     let host = location.host
     let path_name = location.pathname.replace('index.html', '')
 
-    let components_path = Path.concat(host, path_name, config.components_path)
+    let components_path = Path.join(host, path_name, config.components_path)
     this.components_path = components_path
     this.register = new Register({ components_path })
 
     this.container_name = config.container_name
 
     this.controller_name = config.controller_name
-    this.controller_path = Path.concat(this.components_path, this.controller_name, 'index.js')
+    this.controller_path = Path.join(this.components_path, this.controller_name, 'index.js')
 
     this.router_name = config.router_name
-    this.router_path = Path.concat(this.components_path, this.router_name, 'index.js')
+    this.router_path = Path.join(this.components_path, this.router_name, 'index.js')
 
     this.navigate = config.navigate
 

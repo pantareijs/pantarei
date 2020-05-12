@@ -38,7 +38,7 @@ export default class Router {
 
   static async _fetch_routes () {
     let base_url = this.base_url.replace('index.js', '')
-    let routes_url = Path.concat(base_url, this.routes_url)
+    let routes_url = Path.join(base_url, this.routes_url)
     try {
       let res = await fetch(routes_url)
       let routes = await res.json()
