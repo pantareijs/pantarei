@@ -25,7 +25,7 @@ export default class Path {
     return path
   }
 
-  static split (path) {
+  static split (path, separator='/') {
     if (!path) {
       return []
     }
@@ -33,50 +33,56 @@ export default class Path {
     if (!path) {
       return []
     }
-    let parts = path.split('/')
+    let parts = path.split(separator)
     return parts
   }
 
-  static join (...parts) {
-    parts = parts.map(this.unslash, this)
-    let path = parts.join('/')
-    return path
-  }
-
   static normalize (path) {
-    let parts = path.split('/')
-    path = this.join(...parts)
+    path = this.join([path])
     return path
   }
 
-  static join (...parts) {
+  static join (...paths) {
+    let starting = ''
+    let first_path = paths[0]
+
+    let http = 'http://'
+    let https = 'https://'
+    let slash = '/'
+    if (first_path.startsWith(http)) {
+      first_path = first_path.slice(http.length)
+      starting = http
+    } else if (first_path.startsWith(https)) {
+      first_path = first_path.slice(https.length)
+      starting = https
+    } else if (first_path.startsWith(slash)) {
+      first_path = first_path.slice(slash.length)
+      starting = slash
+    }
+    paths[0] = first_path
+
+    let parts = []
+    for (let path of paths) {
+      let path_parts = path.split('/')
+      parts = parts.concat(path_parts)
+    }
+
     let new_parts = []
     for (let part of parts) {
-      let subparts = part.split("/")
-      new_parts = new_parts.concat(subparts)
-    }
-
-    let start = ""
-    if (new_parts[0] === "") {
-      start = "/"
-    }
-
-    let stack = []
-    for (let part of new_parts) {
-      if (part === "") {
+      if (part === '') {
         continue
       }
-      if (part === ".") {
+      if (part === '.') {
         continue
       }
-      if (part === "..") {
-        stack.pop()
+      if (part === '..') {
+        new_parts.pop()
         continue
       }
-      stack.push(part)
+      new_parts.push(part)
     }
 
-    let path = start + stack.join("/")
+    let path = starting + new_parts.join('/')
     return path
   }
 

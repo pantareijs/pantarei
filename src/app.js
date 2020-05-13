@@ -15,8 +15,7 @@ export default class App {
       container_name: 'app-container',
       controller_name: 'app-controller',
       router_name: 'app-router',
-      root_id: 'root',
-      navigate: false
+      root_id: 'root'
     }
   }
 
@@ -39,28 +38,31 @@ export default class App {
     this.root = root
     this.root.app = this
 
-    let protocol = location.protocol + '//'
-    let host = location.host
-    let path_name = location.pathname.replace('index.html', '')
+    let origin = location.origin
+    let pathname = location.pathname
+    if (pathname.endsWith('.html')) {
+      pathname = Path.join(pathname, '..')
+    }
 
-    let components_path = protocol + Path.join(host, path_name, config.components_path)
-    this.components_path = components_path
-    this.register = new Register({ components_path })
+    this.components_path = Path.join(origin, pathname, config.components_path)
+    this.components = {}
 
     this.container_name = config.container_name
+    this.container_path = Path.join(this.components_path, this.container_name, 'index.js')
+    this.container = null
 
     this.controller_name = config.controller_name
     this.controller_path = Path.join(this.components_path, this.controller_name, 'index.js')
+    this.controller = null
 
     this.router_name = config.router_name
     this.router_path = Path.join(this.components_path, this.router_name, 'index.js')
-
-    this.navigate = config.navigate
-
-    this.components = {}
+    this.router = null
   }
 
   async start () {
+    this.register = new Register({ components_path: this.components_path })
+
     let controller_module = await import(this.controller_path)
     let Controller = controller_module.default
     this.controller = new Controller()
@@ -74,14 +76,10 @@ export default class App {
     this.root.addEventListener('action', this._on_action.bind(this), true)
     this.root.addEventListener('ready', this._on_ready_component.bind(this), true)
 
-    if (this.navigate) {
-      this.router = new Navigator()
-    } else {
-      let router_module = await import(this.router_path)
-      let Router = router_module.default
-      Router.base_url = this.router_path
-      this.router = new Router()
-    }
+    let router_module = await import(this.router_path)
+    let Router = router_module.default
+    Router.base_url = this.router_path
+    this.router = new Router()
 
     let location = new Location()
     this.location = location
