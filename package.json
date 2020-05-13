@@ -1,5 +1,5 @@
 {
-  "name": "pantarei",
+  "name": "@pantareijs/pantarei",
   "version": "4.3.5",
   "description": "The Web Framework for the Distributed Web",
   "main": "index.js",
