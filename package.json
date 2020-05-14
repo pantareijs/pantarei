@@ -1,6 +1,6 @@
 {
-  "name": "@pantareijs/pantarei",
-  "version": "4.3.5",
+  "name": "pantarei",
+  "version": "4.3.6",
   "description": "The Web Framework for the Distributed Web",
   "main": "index.js",
   "dependencies": {},
@@ -11,9 +11,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pantareijs/pantarei.git"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   },
   "keywords": [
     "Pantarei",
