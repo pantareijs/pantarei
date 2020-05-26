@@ -1,12 +1,14 @@
 'use strict'
 
+import Assert from '../assert/index.js'
+
 export default class Emitter {
 
-  static get any_map () {
-    if (!this._any_map) {
-      this._any_map = new WeakMap()
+  static get events_set () {
+    if (!this._events_set) {
+      this._events_set = new WeakMap()
     }
-    return this._any_map
+    return this._events_set
   }
 
   static get events_map () {
@@ -14,18 +16,6 @@ export default class Emitter {
       this._events_map = new WeakMap()
     }
     return this._events_map
-  }
-
-  static assert_string (param) {
-    if (typeof param !== 'string') {
-      throw new TypeError('param must be a string')
-    }
-  }
-
-  static assert_function (param) {
-    if (typeof param !== 'function') {
-      throw new TypeError('param must be a function')
-    }
   }
 
   static get_listeners(instance, event_name) {
@@ -37,32 +27,44 @@ export default class Emitter {
     return events.get(event_name)
   }
 
+  get events_set () {
+    return this.constructor.events_set.get(this)
+  }
+
+  get events_map () {
+    return this.constructor.events_map.get(this)
+  }
+
+  get_listeners (event_name) {
+    return this.constructor.get_listeners(this, event_name)
+  }
+
   constructor () {
-    this.constructor.any_map.set(this, new Set())
-    this.constructor.events_map.set(this, new Map())
+    this.events_set.set(new Set())
+    this.events_map.set(new Map())
   }
 
   on (event_name, listener) {
-    this.constructor.assert_string(event_name)
-    this.constructor.assert_function(listener)
+    Assert.string(event_name)
+    Assert.function(listener)
 
-    let listeners = this.constructor.get_listeners(this, event_name)
+    let listeners = this.get_listeners(event_name)
     listeners.add(listener)
     let unsubscribe = this.off.bind(this, event_name, listener)
     return unsubscribe
   }
 
   off (event_name, listener) {
-    this.constructor.assert_string(event_name)
-    this.constructor.assert_function(listener)
+    Assert.string(event_name)
+    Assert.function(listener)
 
-    let listeners = this.constructor.get_listeners(this, event_name)
+    let listeners = this.get_listeners(event_name)
     listeners.delete(listener)
   }
 
   once (event_name, listener) {
-    this.constructor.assert_string(event_name)
-    this.constructor.assert_function(listener)
+    Assert.string(event_name)
+    Assert.function(listener)
 
     let wrapped_listener = (data) => {
       listener(data)
@@ -74,12 +76,12 @@ export default class Emitter {
   }
 
   async emit (event_name, event_data) {
-    this.constructor.assert_string(event_name)
+    Assert.string(event_name)
 
-    const listeners = this.constructor.get_listeners(this, event_name)
+    const listeners = this.get_listeners(event_name)
     const static_listeners = Array.from(listeners)
 
-    const any_listeners = this.constructor.any_map.get(this)
+    const any_listeners = this.events_set
     const static_any_listeners = Array.from(any_listeners)
 
     await Promise.resolve()
@@ -98,11 +100,11 @@ export default class Emitter {
   }
 
   async emit_serial (event_name, event_data) {
-    this.constructor.assert_string(event_name)
+    Assert.string(event_name)
 
-    const listeners = this.constructor.get_listeners(this, event_name)
+    const listeners = this.get_listeners(event_name)
     const static_listeners = listeners.slice()
-    const any_listeners = this.constructor.any_map.get(this)
+    const any_listeners = this.events_set
     const staticAnyListeners = any_listeners.slice()
 
     await Promise.resolve()
@@ -121,31 +123,31 @@ export default class Emitter {
   }
 
   on_any (listener) {
-    this.constructor.assert_function(listener)
+    Assert.function(listener)
 
-    let listeners = this.constructor.any_map.get(this)
+    let listeners = this.events_set
     listeners.add(listener)
     let unsubscribe = this.off_any.bind(this, listener)
     return unsubscribe
   }
 
   off_any (listener) {
-    this.constructor.assert_function(listener)
-    let listeners = this.constructor.any_map.get(this)
+    Assert.function(listener)
+    let listeners = this.events_set
     listeners.delete(listener)
   }
 
   clear (event_name) {
     if (typeof event_name === 'string') {
-      let listeners = this.constructor.get_listeners(this, event_name)
+      let listeners = this.get_listeners(event_name)
       listeners.clear()
       return
     }
 
-    let any_listeners = this.constructor.any_map.get(this)
+    let any_listeners = this.events_set
     any_listeners.clear()
 
-    let events_listeners = this.constructor.events_map.get(this).values()
+    let events_listeners = this.events_map.values()
     for (let event_listeners of events_listeners) {
       event_listeners.clear()
     }
@@ -153,21 +155,21 @@ export default class Emitter {
 
   count (event_name) {
     if (typeof event_name === 'string') {
-      let any_listeners = this.constructor.any_map.get(this)
+      let any_listeners = this.events_set
       let any_listeners_count = any_listeners.size
-      let event_listeners = this.constructor.get_listeners(this, event_name)
+      let event_listeners = this.get_listeners(event_name)
       let event_listeners_count = event_listeners.size
       let count = any_listeners_count + event_listeners_count
       return count
     }
 
     if (typeof event_name !== 'undefined') {
-      this.constructor.assert_string(event_name)
+      Assert.string(event_name)
     }
 
-    let count = this.constructor.any_map.get(this).size
+    let count = this.events_set.size
 
-    for (const value of this.constructor.events_map.get(this).values()) {
+    for (const value of this.events_map.values()) {
       count += value.size
     }
 
