@@ -59,7 +59,7 @@ export default class Router {
     let root
     if (Array.isArray(routes)) {
       let is_root = (route) => { return route.home || route.name === 'home' }
-      root = routes.find(is_route) || routes[0]
+      root = routes.find(is_root) || routes[0]
       let children = routes.filter(route => route != root)
       root.routes = children
     } else {
