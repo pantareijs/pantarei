@@ -49,13 +49,16 @@ export default class Path {
     let http = 'http://'
     let https = 'https://'
     let slash = '/'
+
     if (first_path.startsWith(http)) {
       first_path = first_path.slice(http.length)
       starting = http
-    } else if (first_path.startsWith(https)) {
+    }
+    else if (first_path.startsWith(https)) {
       first_path = first_path.slice(https.length)
       starting = https
-    } else if (first_path.startsWith(slash)) {
+    }
+    else if (first_path.startsWith(slash)) {
       first_path = first_path.slice(slash.length)
       starting = slash
     }
@@ -63,26 +66,30 @@ export default class Path {
 
     let parts = []
     for (let path of paths) {
-      let path_parts = path.split('/')
+      let path_parts = path.split(slash)
       parts = parts.concat(path_parts)
     }
 
+    let empty = ''
+    let dot = '.'
+    let dotdot = '..'
+
     let new_parts = []
     for (let part of parts) {
-      if (part === '') {
+      if (part === empty) {
         continue
       }
-      if (part === '.') {
+      if (part === dot) {
         continue
       }
-      if (part === '..') {
+      if (part === dotdot) {
         new_parts.pop()
         continue
       }
       new_parts.push(part)
     }
 
-    let path = starting + new_parts.join('/')
+    let path = starting + new_parts.join(slash)
     return path
   }
 
