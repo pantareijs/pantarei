@@ -38,14 +38,6 @@ export default class AttributeDirective extends Directive {
     this.name = options.name
     this.path = options.path
     this.expression = new Expression(this.path)
-
-    let node_name = this.node.nodeName.toLowerCase()
-    let attr_name = this.name
-    let func_name = node_name + ' ' + attr_name
-    let handler = this[func_name]
-    if (handler) {
-      this.run = handler
-    }
   }
 
   run (data) {
@@ -53,57 +45,12 @@ export default class AttributeDirective extends Directive {
     let name = this.name
     let value = this.expression.eval(data)
 
-    if (!value) {
-      value = ''
+    if (value === undefined || !value) {
       node.removeAttribute(name)
       return
     }
 
     node.setAttribute(name, value)
-  }
-
-  ['a href'] (data) {
-    let value = this.expression.eval(data)
-
-    if (value === undefined) {
-      this.node.removeAttribute('href')
-      return
-    }
-
-    this.node.setAttribute('href', value)
-  }
-
-  ['a target'] (data) {
-    let value = this.expression.eval(data)
-
-    if (value === undefined) {
-      this.node.removeAttribute('target')
-      return
-    }
-
-    this.node.setAttribute('target', value)
-  }
-
-  ['input disabled'] (data) {
-    let value = this.expression.eval(data)
-
-    if (!value) {
-      this.node.removeAttribute('disabled')
-      return
-    }
-
-    this.node.setAttribute('disabled', 'disabled')
-  }
-
-  ['button disabled'] (data) {
-    let value = this.expression.eval(data)
-
-    if (!value) {
-      this.node.removeAttribute('disabled')
-      return
-    }
-
-    this.node.setAttribute('disabled', 'disabled')
   }
 
 }
