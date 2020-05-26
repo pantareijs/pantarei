@@ -51,20 +51,24 @@ export default class RepeatDirective extends Directive {
     this.template = document.createElement('template')
     this.node.insertBefore(this.template, this.content)
     this.template.content.appendChild(this.content)
+
+    this.node._items = []
+    this.node._new_items = []
+    this.node._nodes = []
   }
 
   run (data) {
     let node = this.node
-    node._nodes = node._nodes || []
 
+    node._items = node._items || []
     node._new_items = this.expression.eval(data) || []
 
-    let items_count = node._nodes.length
+    let items_count = node._items.length
     let new_items_count = node._new_items.length
 
     if (new_items_count < items_count) {
       for (let index = 0; index < new_items_count; index++) {
-        this._update_child(index, data)
+        this._update_child(index)
       }
       for (let index = new_items_count; index < items_count; index++) {
         this._remove_child(index)
@@ -72,33 +76,37 @@ export default class RepeatDirective extends Directive {
     }
     else {
       for (let index = 0; index < items_count; index++) {
-        this._update_child(index, data)
+        this._update_child(index)
       }
       for (let index = items_count; index < new_items_count; index++) {
-        this._create_child(index, data)
+        this._create_child(index)
+        this._update_child(index)
+        this._insert_child(index)
       }
     }
 
-    node._items = node._new_items
+    node._items = node._new_items.slice()
   }
 
   _create_child (index, data) {
     let node = this.node
     let children = node._nodes
     let child = this.content.cloneNode(true)
-
     children[index] = child
-    this._update_child(index, data)
-    this._insert_child(child)
-
     return child
   }
 
-  _insert_child (child) {
+  _insert_child (index) {
+    let node = this.node
+    let children = node._nodes
+    let child = children[index]
+    if (!child) {
+      return
+    }
     this.template.parentNode.insertBefore(child, this.template)
   }
 
-  _update_child (index, data) {
+  _update_child (index) {
     let node = this.node
     let children = node._nodes
     let child = children[index]
@@ -127,6 +135,11 @@ export default class RepeatDirective extends Directive {
     children[index] = null
 
     return child
+  }
+
+  _clear () {
+    let node = this.node
+    node._nodes = node._nodes.filter(node => node)
   }
 
 }
