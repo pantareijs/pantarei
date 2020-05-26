@@ -110,33 +110,35 @@ export default class Director {
   render () {
     let node = this.root
     let data = this.component.data
-    this._render_node(node, data)
+    let node_scope = node.scope || {}
+    this._render_node(node, data, node_scope)
   }
 
-  _render_node (node, data, recursive=true) {
-    this._render_directives(node, data)
+  _render_node (node, data, scope, recursive=true) {
+    let node_scope = node.scope || {}
+    scope = Object.assign({}, node_scope, scope)
+    this._render_directives(node, data, scope)
     if (!recursive) {
       return
     }
     let nodes = node.children
-    this._render_nodes(nodes, data, recursive)
+    this._render_nodes(nodes, data, scope, recursive)
   }
 
-  _render_nodes (nodes, data, recursive=true) {
+  _render_nodes (nodes, data, scope, recursive=true) {
     for (let node of nodes) {
-      this._render_node(node, data, recursive)
+      this._render_node(node, data, scope, recursive)
     }
   }
 
-  _render_directives (node, data) {
+  _render_directives (node, data, scope) {
     let directives = node._directives || []
     for (let directive of directives) {
-      this._render_directive(node, directive, data)
+      this._render_directive(node, directive, data, scope)
     }
   }
 
-  _render_directive (node, directive, data) {
-    let scope = node.scope || {}
+  _render_directive (node, directive, data, scope) {
     directive.run({ data, scope })
   }
 
