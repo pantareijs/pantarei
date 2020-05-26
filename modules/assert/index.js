@@ -1,14 +1,14 @@
 
 export default class Assert {
 
-  static string (argument) {
-    if (typeof param !== 'string') {
+  static string (value) {
+    if (typeof value !== 'string') {
       throw new TypeError('argument must be a string')
     }
   }
 
-  static function (argument) {
-    if (typeof param !== 'function') {
+  static function (value) {
+    if (typeof value !== 'function') {
       throw new TypeError('argument must be a function')
     }
   }
