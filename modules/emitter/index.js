@@ -18,7 +18,7 @@ export default class Emitter {
     return this._events_map
   }
 
-  static get_listeners(instance, event_name) {
+  static get_listeners (instance, event_name) {
     const events = this.events_map.get(instance)
     if (!events.has(event_name)) {
       events.set(event_name, new Set())
@@ -28,20 +28,28 @@ export default class Emitter {
   }
 
   get events_set () {
-    return this.constructor.events_set.get(this)
+    return Emitter.events_set.get(this)
+  }
+
+  set events_set (set) {
+    Emitter.events_set.set(this, set)
   }
 
   get events_map () {
-    return this.constructor.events_map.get(this)
+    return Emitter.events_map.get(this)
+  }
+
+  set events_map (map) {
+    Emitter.events_map.set(this, map)
   }
 
   get_listeners (event_name) {
-    return this.constructor.get_listeners(this, event_name)
+    return Emitter.get_listeners(this, event_name)
   }
 
   constructor () {
-    this.events_set.set(new Set())
-    this.events_map.set(new Map())
+    this.events_set = new Set()
+    this.events_map = new Map()
   }
 
   on (event_name, listener) {
