@@ -19,10 +19,6 @@ export default class Emitter {
     return this._events_map
   }
 
-  static get_listeners (instance, event_name) {
-
-  }
-
   get events_set () {
     return Emitter.events_set.get(this)
   }
@@ -108,7 +104,7 @@ export default class Emitter {
     Assert.string(event_name)
 
     let listeners = this.get_listeners(event_name)
-    let current_listeners = listener.values()
+    let current_listeners = listeners.values()
 
     let any_listeners = this.events_set
     let current_any_listeners = any_listeners.values()
