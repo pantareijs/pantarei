@@ -9,14 +9,12 @@ import Path from '../path/index.js'
 
 export default class App {
 
-  static get defaults () {
-    return {
-      components_path: 'components/',
-      container_name: 'app-container',
-      controller_name: 'app-controller',
-      router_name: 'app-router',
-      root_id: 'root'
-    }
+  static defaults = {
+    components_path: 'components/',
+    container_name: 'app-container',
+    controller_name: 'app-controller',
+    router_name: 'app-router',
+    root_id: 'root'
   }
 
   static async start (config) {

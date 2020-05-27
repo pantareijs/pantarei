@@ -1,53 +1,24 @@
 'use strict'
 
 import Directive from '../directive/index.js'
-import Expression from '../expression/index.js'
 
 export default class DirectiveClass extends Directive {
 
-  static get type () { return 'class' }
+  static prefix = 'class.'
 
-  static get _prefix () { return 'class.' }
-
-  static match (attribute) {
-    return attribute.name.startsWith(this._prefix)
-  }
-
-  static parse_name (attribute) {
-    return attribute.name.substring(this._prefix.length)
-  }
-
-  static parse_value (attribute) {
-    return attribute.value
-  }
-
-  static parse (node, attribute) {
-    if (!this.match(attribute)) {
-      return
-    }
+  static match (node, attribute) {
     if (!node.classList) {
       return
     }
-
-    let name = this.parse_name(attribute)
-    let path = this.parse_value(attribute)
-    let directive = new this({ node, name, path })
-    return directive
-  }
-
-  constructor (options) {
-    super(options)
-    this.node = options.node
-    this.name = options.name
-    this.path = options.path
-    this.expression = new Expression(this.path)
+    return super.match(node, attribute)
   }
 
   run (data) {
     let node = this.node
-    let name = this.name
-    let value = this.expression.eval(data)
-    node.classList.toggle(this.name, !!value)
+    let name = this.key
+    let value = this.value_expression.eval(data)
+
+    node.classList.toggle(name, !!value)
   }
 
 }

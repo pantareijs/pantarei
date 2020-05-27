@@ -38,21 +38,4 @@ export default class Renderer {
     }
   }
 
-  _debounce (func, wait) {
-    let timeout
-
-    let debounced = function () {
-      let context = this
-
-      let later = function () {
-        func.apply(context)
-      }
-
-      clearTimeout(timeout)
-      timeout = setTimeout(later, wait)
-    }
-
-    return debounced
-  }
-
 }

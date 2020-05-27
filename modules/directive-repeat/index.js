@@ -5,26 +5,24 @@ import Expression from '../expression/index.js'
 
 export default class DirectiveRepeat extends Directive {
 
-  static get type () { return 'repeat' }
+  static prefix = 'repeat'
 
-  static get default () {
-    return {
-      items_path: 'data.items',
-      item_name: 'item',
-      index_name: 'index',
-      key_name: 'key',
-      value_name: 'value'
-    }
-  }
-
-  static match (attribute) {
-    return attribute.name === 'repeat'
+  static default = {
+    items_path: 'data.items',
+    item_name: 'item',
+    index_name: 'index',
+    key_name: 'key',
+    value_name: 'value'
   }
 
   static parse (node, attribute) {
-    if (!this.match(attribute)) {
+    if (!this.match(node, attribute)) {
       return
     }
+
+    let key = this.parse_key(attribute)
+    let value_path = this.parse_value_path(attribute)
+    let value_expression = new Expression(value_path)
 
     let items_path = node.getAttribute('repeat') || this.default.items_path
     let item_name = node.getAttribute('item') || this.default.item_name
@@ -32,15 +30,17 @@ export default class DirectiveRepeat extends Directive {
     let key_name = node.getAttribute('key') || this.default.key_name
     let value_name = node.getAttribute('value') || this.default.value_name
 
-    let directive = new this({ node, items_path, item_name, index_name, key_name, value_name })
+    let directive = new this({ node, key, value_path, value_expression,
+      items_path, item_name, index_name, key_name, value_name })
+
     return directive
   }
 
   constructor (options) {
     super(options)
+
     this.node = options.node
     this.items_path = options.items_path
-    this.expression = new Expression(this.items_path)
     this.item_name = options.item_name
     this.index_name = options.index_name
     this.key_name = options.key_name
@@ -61,7 +61,7 @@ export default class DirectiveRepeat extends Directive {
     let node = this.node
 
     node._items = node._items || []
-    node._new_items = this.expression.eval(data) || []
+    node._new_items = this.value_expression.eval(data) || []
 
     let items_count = node._items.length
     let new_items_count = node._new_items.length

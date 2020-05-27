@@ -128,8 +128,6 @@ export default class Component extends HTMLElement {
 
   static get components () { return [] }
 
-  static get consumers () { return [] }
-
   constructor () {
     super()
     this._ready = this._init()
@@ -137,6 +135,21 @@ export default class Component extends HTMLElement {
 
   connectedCallback () {
     this._connected()
+  }
+
+  async _connected () {
+    await this._ready
+
+    this._find_components()
+    this.fire('ready', this)
+
+    this._director = new Director(this)
+    this._director.parse()
+
+    this._renderer.render()
+
+    this.fire('connected')
+    await this.connected()
   }
 
   _find_components () {
@@ -164,34 +177,21 @@ export default class Component extends HTMLElement {
     }
   }
 
-  async _connected () {
-    await this._ready
-
-    this._find_components()
-    this.fire('ready', this)
-
-    this._director = new Director(this)
-    this._director.parse()
-
-    this._renderer.render()
-
-    this.fire('connected', this)
-
-    requestAnimationFrame(() => {
-      this.connected()
-    })
-  }
-
   async connected () {}
 
   disconnectedCallback () {
-    this.fire('disconnected', this)
-    this.disconnected()
+    this._disconnected()
   }
 
-  disconnected () {}
+  async _disconnected () {
+    this.fire('disconnected')
+    await this.disconnected()
+  }
+
+  async disconnected () {}
 
   fire (type, detail) {
+    detail = detail || {}
     let config = { bubbles: true, cancelable: true, composed: true, detail: detail }
     let event = new CustomEvent(type, config)
     this.dispatchEvent(event)
@@ -200,7 +200,6 @@ export default class Component extends HTMLElement {
 
   action (name, data) {
     return new Promise((resolve, reject) => {
-
       let callback = (err, res) => {
         if (err) {
           reject(err)
@@ -215,15 +214,9 @@ export default class Component extends HTMLElement {
     })
   }
 
-  async (func) {
-    requestAnimationFrame(func.bind(this))
-  }
-
   async _init () {
     await this._init_content()
-    if (this.constructor.experiments.directives) {
-      await this._init_directives()
-    }
+    await this._init_directives()
     this._init_render()
     this._init_props()
     this._init_data()
@@ -245,6 +238,9 @@ export default class Component extends HTMLElement {
   }
 
   async _init_directives () {
+    if (!this.constructor.experiments.directives) {
+      return
+    }
     let directives = await this.constructor._directives
     this._bind_directives(directives)
   }
@@ -264,23 +260,6 @@ export default class Component extends HTMLElement {
 
   _init_render () {
     this._renderer = new Renderer(this)
-  }
-
-  _init_data () {
-    let component = this
-    this.data = this.data || {}
-    this._data = Object.assign({}, this.data)
-
-    this.data = new Proxy(this._data, {
-      set (target, key, value) {
-        target[key] = value
-        component._renderer.render()
-        return true
-      },
-      get (target, key) {
-        return target[key]
-      }
-    })
   }
 
   _init_props () {
@@ -311,6 +290,23 @@ export default class Component extends HTMLElement {
     })
   }
 
+  _init_data () {
+    let component = this
+    this.data = this.data || {}
+    this._data = Object.assign({}, this.data)
+
+    this.data = new Proxy(this._data, {
+      set (target, key, value) {
+        target[key] = value
+        component._renderer.render()
+        return true
+      },
+      get (target, key) {
+        return target[key]
+      }
+    })
+  }
+
   _init_refs () {
     this.refs = {}
     let node_list = this.shadowRoot.querySelectorAll('[id]')
@@ -320,13 +316,13 @@ export default class Component extends HTMLElement {
     }
   }
 
+  async ready () {}
+
   _render () {
     this._director.render(this.props)
     this.render()
   }
 
   render () {}
-
-  async ready () {}
 
 }
