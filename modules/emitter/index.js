@@ -1,6 +1,7 @@
 'use strict'
 
 import Assert from '../assert/index.js'
+import Type from '../type/index.js'
 
 export default class Emitter {
 
@@ -19,12 +20,7 @@ export default class Emitter {
   }
 
   static get_listeners (instance, event_name) {
-    const events = this.events_map.get(instance)
-    if (!events.has(event_name)) {
-      events.set(event_name, new Set())
-    }
 
-    return events.get(event_name)
   }
 
   get events_set () {
@@ -43,13 +39,21 @@ export default class Emitter {
     Emitter.events_map.set(this, map)
   }
 
-  get_listeners (event_name) {
-    return Emitter.get_listeners(this, event_name)
-  }
-
   constructor () {
     this.events_set = new Set()
     this.events_map = new Map()
+  }
+
+  get_listeners (event_name) {
+    let events = this.events_map
+    let listeners = events.get(event_name)
+
+    if (!listeners) {
+      listeners = new Set()
+      events.set(event_name, listeners)
+    }
+
+    return listeners
   }
 
   on (event_name, listener) {
@@ -83,70 +87,103 @@ export default class Emitter {
     return unsubscribe
   }
 
-  async emit (event_name, event_data) {
-    Assert.string(event_name)
-
-    const listeners = this.get_listeners(event_name)
-    const static_listeners = Array.from(listeners)
-
-    const any_listeners = this.events_set
-    const static_any_listeners = Array.from(any_listeners)
-
-    await Promise.resolve()
-
-    let filtered_static_listeners = static_listeners
-        .filter(listener => listeners.has(listener))
-        .map(listener => listener(event_data))
-
-    let filtered_any_static_listeners = static_any_listeners
-        .filter(listener => listeners.has(listener))
-        .map(listener => listener(event_name, event_data))
-
-    let all_listeners = filtered_static_listeners.concat(filtered_any_static_listeners)
-
-    await Promise.all(all_listeners)
-  }
-
-  async emit_serial (event_name, event_data) {
-    Assert.string(event_name)
-
-    const listeners = this.get_listeners(event_name)
-    const static_listeners = listeners.slice()
-    const any_listeners = this.events_set
-    const staticAnyListeners = any_listeners.slice()
-
-    await Promise.resolve()
-
-    for (const listener of static_listeners) {
-      if (listeners.has(listener)) {
-        await listener(event_data)
-      }
-    }
-
-    for (const listener of static_any_listeners) {
-      if (any_listeners.has(listener)) {
-        await listener(event_name, event_data)
-      }
-    }
-  }
-
   on_any (listener) {
     Assert.function(listener)
 
-    let listeners = this.events_set
-    listeners.add(listener)
+    let any_listeners = this.events_set
+    any_listeners.add(listener)
+
     let unsubscribe = this.off_any.bind(this, listener)
     return unsubscribe
   }
 
   off_any (listener) {
     Assert.function(listener)
-    let listeners = this.events_set
-    listeners.delete(listener)
+
+    let any_listeners = this.events_set
+    any_listeners.delete(listener)
+  }
+
+  async emit (event_name, event_data) {
+    Assert.string(event_name)
+
+    let listeners = this.get_listeners(event_name)
+    let current_listeners = listener.values()
+
+    let any_listeners = this.events_set
+    let current_any_listeners = any_listeners.values()
+
+    let promises = []
+
+    await Promise.resolve()
+
+    for (let listener of current_listeners) {
+      if (!listeners.has(listener)) {
+        continue
+      }
+      let promise = listener(event_data)
+      promises.push(promise)
+    }
+
+    for (let listenr of current_any_listeners) {
+      if (!any_listeners.has(listener)) {
+        continue
+      }
+      let promise = listener(event_name, event_data)
+      promises.push(promise)
+    }
+
+    let results = await Promise.allSettled(promises)
+
+    return results
+  }
+
+  async emit_serial (event_name, event_data) {
+    Assert.string(event_name)
+
+    let listeners = this.get_listeners(event_name)
+    let current_listeners = listeners.values()
+
+    let any_listeners = this.events_set
+    let current_any_listeners = any_listeners.values()
+
+    await Promise.resolve()
+
+    let promises = []
+
+    for (let listener of current_listeners) {
+      if (!listeners.has(listener)) {
+        continue
+      }
+      let promise = listener(event_data)
+      promises.push(promise)
+    }
+
+    for (let listener of current_any_listeners) {
+      if (!any_listeners.has(listener)) {
+        continue
+      }
+      let promise = listener(event_name, event_data)
+      promises.push(promise)
+    }
+
+    let results = []
+
+    for (let promise of promises) {
+      try {
+        await promise
+      } finally {
+        results.push(promise)
+      }
+    }
+
+    return results
   }
 
   clear (event_name) {
-    if (typeof event_name === 'string') {
+    if (Type.defined(event_name)) {
+      Assert.string(event_name)
+
       let listeners = this.get_listeners(event_name)
       listeners.clear()
       return
@@ -162,23 +199,28 @@ export default class Emitter {
   }
 
   count (event_name) {
-    if (typeof event_name === 'string') {
+    if (Type.defined(event_name)) {
+      Assert.string(event_name)
+
+      let count = 0
+
       let any_listeners = this.events_set
-      let any_listeners_count = any_listeners.size
+      count += any_listeners.size
+
       let event_listeners = this.get_listeners(event_name)
-      let event_listeners_count = event_listeners.size
-      let count = any_listeners_count + event_listeners_count
+      count += event_listeners.size
+
       return count
     }
 
-    if (typeof event_name !== 'undefined') {
-      Assert.string(event_name)
-    }
+    let count = 0
 
-    let count = this.events_set.size
+    let any_listeners = this.events_set
+    count += any_listeners.size
 
-    for (const value of this.events_map.values()) {
-      count += value.size
+    let events_listeners = this.events_map.values()
+    for (let event_listeners of events_listeners) {
+      count += event_listeners.size
     }
 
     return count
