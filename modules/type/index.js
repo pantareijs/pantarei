@@ -13,8 +13,4 @@ export default class Type {
     return typeof value === 'undefined'
   }
 
-  static defined (value) {
-    return typeof value !== 'undefined'
-  }
-
 }

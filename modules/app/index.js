@@ -91,7 +91,7 @@ export default class App {
 
   _on_ready_component (event) {
     let component = event.detail
-    let components = component._components || []
+    let components = component.components || []
     this.register.get_components(components)
   }
 
@@ -103,10 +103,10 @@ export default class App {
   async _action (detail) {
     let callback = detail.callback
     let name = detail.name
-    let data = detail.data
+    let args = detail.args || []
 
     try {
-      let res = await this.controller.action(name, data)
+      let res = await this.controller.action(name, ...args)
       callback(null, res)
     } catch (err) {
       callback(err, null)

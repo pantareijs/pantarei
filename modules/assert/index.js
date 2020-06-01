@@ -17,11 +17,11 @@ export default class Assert {
     throw new TypeError('argument must be a function')
   }
 
-  static defined (value) {
-    if (Type.defined(value)) {
+  static undefined (value) {
+    if (Type.undefined(value)) {
       return true
     }
-    throw new TypeError('argument must be defined')
+    throw new TypeError('argument must be undefined')
   }
 
 }

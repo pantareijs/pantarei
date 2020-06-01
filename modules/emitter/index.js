@@ -177,7 +177,7 @@ export default class Emitter {
   }
 
   clear (event_name) {
-    if (Type.defined(event_name)) {
+    if (!Type.undefined(event_name)) {
       Assert.string(event_name)
 
       let listeners = this.get_listeners(event_name)
@@ -195,7 +195,7 @@ export default class Emitter {
   }
 
   count (event_name) {
-    if (Type.defined(event_name)) {
+    if (!Type.undefined(event_name)) {
       Assert.string(event_name)
 
       let count = 0

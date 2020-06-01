@@ -15,12 +15,12 @@ export default class Controller {
     return this
   }
 
-  async action (name, data) {
+  async action (name, ...args) {
     let handler = this[name]
     if (!handler) {
       return
     }
-    let res = await handler.call(this, data)
+    let res = await handler.apply(this, args)
     return res
   }
 

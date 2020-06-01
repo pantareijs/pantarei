@@ -1,13 +1,14 @@
 'use strict'
 
+import Emitter from '../emitter/index.js'
 import Component from '../component/index.js'
 import Path from '../path/index.js'
 
 export default class Register {
 
   constructor (config) {
+    this.events = new Emitter()
     this.components_path = config.components_path
-
     this._components = {}
     this._promises = {}
   }
@@ -56,12 +57,11 @@ export default class Register {
   define_component (component_name, component_constructor) {
     try {
       if (!window.customElements.get(component_name)) {
-        // component_constructor.base_url = this.components_path + component_name + '/'
         window.customElements.define(component_name, component_constructor)
       }
       this._components[component_name] = component_constructor
-    } catch (err) {
-      console.log(err)
+    } catch (error) {
+      this.events.emit('error', error)
     }
   }
 
