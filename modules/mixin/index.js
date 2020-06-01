@@ -43,7 +43,7 @@ export default function mixin (base, ...mappings) {
   let current_base
 
   for (let mapping of mappings) {
-    current_base = mapping(base)
+    current_base = map(mapping)(base)
     base = current_base
   }
 

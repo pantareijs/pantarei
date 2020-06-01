@@ -1,23 +1,14 @@
 'use strict'
 
-import Lock from '../lock/index.js'
-
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_data = new Lock()
-    await this.lock_render.unlocked
-    await this.init_data()
-  }
-
-  async init_data () {
+    super.init()
+    await this.locks.unlocked('render')
     let data = this.data || {}
     this._data = Object.assign({}, data)
     this.data = this.create_proxy(this._data, this.render)
-    this.lock_data.unlock()
+    this.locks.unlock('data')
   }
 
   create_proxy (target, update) {

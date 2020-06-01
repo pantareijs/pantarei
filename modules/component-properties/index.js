@@ -7,14 +7,9 @@ export default superclass => class extends superclass {
   static properties = []
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.init_props()
-  }
-
-  init_props () {
+    super.init()
     this.define_properties()
+    this.locks.unlock('props')
   }
 
   define_properties () {

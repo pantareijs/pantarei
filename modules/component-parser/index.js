@@ -1,21 +1,16 @@
 'use strict'
 
-import Lock from '../lock/index.js'
-
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_parsed = new Lock()
+    super.init()
+    await this.locks.unlocked('shadow')
     await this.parse()
+    this.locks.unlock('parsed')
   }
 
   async parse () {
-    await this.lock_shadow.unlocked
     this._parse_node(this.shadowRoot)
-    this.lock_parsed.unlock()
   }
 
   _parse_node (node, recursive=true) {

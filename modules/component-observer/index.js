@@ -3,14 +3,10 @@
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    await Promise.allSettled([
-      this.lock_parsed.unlocked,
-      this.lock_render.unlocked
-    ])
+    super.init()
+    await this.locks.unlocked(['parsed', 'render'])
     await this.init_observer()
+    this.locks.unlock('observer')
   }
 
   async init_observer () {

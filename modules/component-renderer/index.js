@@ -1,23 +1,19 @@
 'use strict'
 
-import Lock from '../lock/index.js'
 import Throttler from '../throttler/index.js'
 
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_render = new Lock()
-    await this.lock_parsed.unlocked
+    super.init()
+    await this.locks.unlocked('parsed')
     this.init_render()
+    this.locks.unlock('render')
   }
 
   async init_render () {
     this._render = this._render.bind(this)
     this.render = Throttler.throttle(this._render)
-    this.lock_render.unlock()
   }
 
   _render (data) {

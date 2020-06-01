@@ -40,11 +40,10 @@ export default superclass => class extends superclass {
   }
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    await this.lock_content.unlocked
+    super.init()
+    await this.locks.unlocked('content')
     await this.init_directives()
+    this.locks.unlock('directives')
   }
 
   async init_directives () {

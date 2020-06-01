@@ -15,7 +15,7 @@ import ComponentRenderer from '../component-renderer/index.js'
 import ComponentObserver from '../component-observer/index.js'
 import ComponentEvents from '../component-events/index.js'
 
-import Lock from '../lock/index.js'
+import Locker from '../locker/index.js'
 
 export default class Component extends mixin(HTMLElement,
     ComponentTemplate, ComponentStyles,
@@ -27,9 +27,7 @@ export default class Component extends mixin(HTMLElement,
 
   constructor () {
     super()
-    this.lock_shadow = new Lock()
-    this.lock_connected = new Lock()
-    this.lock_disconnected = new Lock()
+    this.locks = new Locker()
     this.init()
   }
 
@@ -39,40 +37,38 @@ export default class Component extends mixin(HTMLElement,
     }
     this.init_shadow()
 
-    await Promise.allSettled([
-      this.lock_content.unlocked,
-      this.lock_components.unlocked
+    await this.locks.unlocked([
+      'content',
+      'data',
+      'properties',
+      'components'
     ])
+
+    this.locks.unlock('ready')
     this.emit('ready', this)
   }
 
   init_shadow () {
     this.attachShadow({ mode: 'open' })
-    this.lock_shadow.unlock()
+    this.locks.unlock('shadow')
   }
 
   connectedCallback () {
     this.connected()
   }
 
+  async connected () {
+    await this.locks.unlocked('shadow')
+    this.locks.unlock('connected')
+  }
+
   disconnectedCallback () {
     this.disconnected()
   }
 
-  async connected () {
-    if (super.connected) {
-      super.connected()
-    }
-    await this.lock_shadow.unlocked
-    this.lock_connected.unlock()
-  }
-
   async disconnected () {
-    if (super.disconnected) {
-      super.disconnected()
-    }
-    await this.lock_connected.unlocked
-    this.lock_disconnected.unlock()
+    await this.locks.unlocked('connected')
+    this.locks.unlock('disconnected')
   }
 
 }

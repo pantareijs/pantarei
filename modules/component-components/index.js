@@ -1,21 +1,12 @@
 'use strict'
 
-import Lock from '../lock/index.js'
-
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_components = new Lock()
-    await this.lock_content.unlocked
-    this.init_components()
-  }
-
-  async init_components () {
+    super.init()
+    await this.locks.unlocked('content')
     this.components = this.find_components(this.shadowRoot)
-    this.lock_components.unlock()
+    this.locks.unlock('components')
   }
 
   find_components (node) {
@@ -36,7 +27,9 @@ export default superclass => class extends superclass {
     let children = node.children
     for (let child of children) {
       let child_components = this.find_components(child)
-      components = new Set([...components, ...child_components])
+      for (let child_component of child_components) {
+        components.add(child_component)
+      }
     }
 
     return components

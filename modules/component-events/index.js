@@ -1,19 +1,10 @@
 'use strict'
 
-import Lock from '../lock/index.js'
-
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_events = new Lock()
-    await this.init_events()
-  }
-
-  async init_events () {
-    this.lock_events.unlock()
+    super.init()
+    this.locks.unlock('events')
   }
 
   emit (type, detail) {

@@ -3,15 +3,10 @@
 export default superclass => class extends superclass {
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    await this.lock_content.unlocked
-    this.init_parts()
-  }
-
-  init_parts () {
+    super.init()
+    await this.locks.unlocked('content')
     this.parts = this.find_parts(this.shadowRoot)
+    this.locks.unlock('parts')
   }
 
   find_parts (node) {
