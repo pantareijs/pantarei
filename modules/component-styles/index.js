@@ -61,17 +61,10 @@ export default superclass => class extends superclass {
   }
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_styles = new Lock()
-    await this.lock_connected.unlocked
-    await this.init_styles()
-  }
-
-  async init_styles () {
+    super.init()
+    await this.locks.unlocked('connected')
     this.html_styles = await this.constructor.get_styles()
-    this.lock_styles.unlock()
+    this.locks.unlock('styles')
   }
 
 }

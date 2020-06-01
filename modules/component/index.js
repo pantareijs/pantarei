@@ -32,15 +32,16 @@ export default class Component extends mixin(HTMLElement,
   }
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
+    super.init()
     this.init_shadow()
 
     await this.locks.unlocked([
+      'template',
+      'styles',
       'content',
+      'directives',
       'data',
-      'properties',
+      'props',
       'components'
     ])
 

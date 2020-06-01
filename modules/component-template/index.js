@@ -1,6 +1,5 @@
 'use strict'
 
-import Lock from '../lock/index.js'
 import Path from '../path/index.js'
 
 export default superclass => class extends superclass {
@@ -44,17 +43,10 @@ export default superclass => class extends superclass {
   }
 
   async init () {
-    if (super.init) {
-      super.init()
-    }
-    this.lock_template = new Lock()
-    await this.lock_connected.unlocked
-    await this.init_template()
-  }
-
-  async init_template () {
+    if (super.init) super.init()
+    await this.locks.unlocked('connected')
     this.html_template = await this.constructor.get_template()
-    this.lock_template.unlock()
+    this.locks.unlock('template')
   }
 
 }
