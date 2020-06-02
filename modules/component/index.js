@@ -18,12 +18,18 @@ import ComponentEvents from '../component-events/index.js'
 import Locker from '../locker/index.js'
 
 export default class Component extends mixin(HTMLElement,
-    ComponentTemplate, ComponentStyles,
-    ComponentContent, ComponentDirectives,
-    ComponentParser, ComponentRenderer,
-    ComponentProperties, ComponentData,
-    ComponentComponents, ComponentParts,
-    ComponentObserver, ComponentEvents) {
+    ComponentTemplate,
+    ComponentStyles,
+    ComponentContent,
+    ComponentComponents,
+    ComponentDirectives,
+    ComponentData,
+    ComponentParser,
+    ComponentRenderer,
+    ComponentProperties,
+    ComponentParts,
+    ComponentObserver,
+    ComponentEvents) {
 
   constructor () {
     super()
@@ -39,16 +45,16 @@ export default class Component extends mixin(HTMLElement,
       'template',
       'styles',
       'content',
+      'components',
       'directives',
       'data',
       'props',
-      'components',
       'parsed',
       'render'
     ])
 
-    this.locks.unlock('ready')
     this.emit('ready', this)
+    this.locks.unlock('ready')
     this.ready()
   }
 
@@ -65,6 +71,7 @@ export default class Component extends mixin(HTMLElement,
 
   async connected () {
     await this.locks.unlocked('shadow')
+    this.emit('connected', this)
     this.locks.unlock('connected')
   }
 

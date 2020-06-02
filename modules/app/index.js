@@ -71,8 +71,8 @@ export default class App {
 
     this.controller.container = this.container
 
-    this.root.addEventListener('action', this._on_action.bind(this), true)
-    this.root.addEventListener('ready', this._on_ready_component.bind(this), true)
+    this.root.addEventListener('action', this._on_component_action.bind(this), true)
+    this.root.addEventListener('ready', this._on_component_ready.bind(this), true)
 
     let router_module = await import(this.router_path)
     let Router = router_module.default
@@ -89,13 +89,13 @@ export default class App {
     await this.location.start()
   }
 
-  _on_ready_component (event) {
+  _on_component_ready (event) {
     let component = event.detail
     let components = component.components || []
     this.register.get_components(components)
   }
 
-  _on_action (event) {
+  _on_component_action (event) {
     let detail = event.detail
     this._action(detail)
   }

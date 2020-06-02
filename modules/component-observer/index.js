@@ -4,7 +4,7 @@ export default superclass => class extends superclass {
 
   async init () {
     super.init()
-    await this.locks.unlocked(['parsed', 'render'])
+    await this.locks.unlocked('render')
     await this.init_observer()
     this.locks.unlock('observer')
   }
