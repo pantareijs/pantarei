@@ -1,7 +1,9 @@
 {
   "name": "pantarei",
-  "version": "4.4.0",
+  "version": "4.5.0",
   "description": "The Web Framework for the Distributed Web",
+  "type": "module",
+  "module": "index.js",
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {},
