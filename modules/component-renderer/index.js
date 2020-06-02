@@ -7,13 +7,9 @@ export default superclass => class extends superclass {
   async init () {
     super.init()
     await this.locks.unlocked('parsed')
-    this.init_render()
-    this.locks.unlock('render')
-  }
-
-  async init_render () {
     this._render = this._render.bind(this)
     this.render = Throttler.throttle(this._render)
+    this.locks.unlock('render')
   }
 
   _render (data) {
@@ -41,7 +37,7 @@ export default superclass => class extends superclass {
   }
 
   _render_directives (node, data, scope) {
-    let directives = node._directives || []
+    let directives = node.directives || []
     for (let directive of directives) {
       this._render_directive(node, directive, data, scope)
     }

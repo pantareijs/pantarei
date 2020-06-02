@@ -11,12 +11,12 @@ export default superclass => class extends superclass {
     this.locks.unlock('data')
   }
 
-  create_proxy (target, update) {
+  create_proxy (target, render) {
     return new Proxy(target, {
 
       set (target, key, value) {
         target[key] = value
-        update.call(this)
+        render()
         return true
       },
 

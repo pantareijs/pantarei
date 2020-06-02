@@ -43,7 +43,9 @@ export default superclass => class extends superclass {
   }
 
   async init () {
-    if (super.init) super.init()
+    if (super.init) {
+      super.init()
+    }
     await this.locks.unlocked('connected')
     this.html_template = await this.constructor.get_template()
     this.locks.unlock('template')

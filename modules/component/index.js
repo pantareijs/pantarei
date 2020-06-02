@@ -42,12 +42,17 @@ export default class Component extends mixin(HTMLElement,
       'directives',
       'data',
       'props',
-      'components'
+      'components',
+      'parsed',
+      'render'
     ])
 
     this.locks.unlock('ready')
     this.emit('ready', this)
+    this.ready()
   }
+
+  ready () {}
 
   init_shadow () {
     this.attachShadow({ mode: 'open' })
