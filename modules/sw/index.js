@@ -89,7 +89,8 @@ class Service {
 
   async fetch (request) {
     try {
-      let response = await fetch(request)
+      let cloned_request = request.clone()
+      let response = await fetch(cloned_request)
       return [null, response]
     } catch (error) {
       return [error]
