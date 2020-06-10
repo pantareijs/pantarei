@@ -24,7 +24,6 @@ export default superclass => class extends superclass {
       return ''
     }
     let base_url = this.base_url
-    base_url = base_url.replace('/index.js', '/')
     template_url = Path.join(base_url, template_url)
 
     template_text = await this.fetch_template(template_url)

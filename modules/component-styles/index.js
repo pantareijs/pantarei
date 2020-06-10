@@ -28,7 +28,6 @@ export default superclass => class extends superclass {
       return ''
     }
     let base_url = this.base_url
-    base_url = base_url.replace('/index.js', '/')
     style_urls = style_urls.map((style_url) => {
       return Path.join(base_url, style_url)
     })

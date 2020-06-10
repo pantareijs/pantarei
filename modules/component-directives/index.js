@@ -6,7 +6,7 @@ export default superclass => class extends superclass {
 
   static directives = null
 
-  static directives_url = 'directives.json'
+  static directives_url = './directives.json'
 
   static get_directives () {
     if (!this._promise_directives) {
@@ -26,8 +26,7 @@ export default superclass => class extends superclass {
 
   static async _fetch_directives () {
     let directives = {}
-    let base_url = this.base_url.replace('/index.js', '/')
-    let directives_url = Path.join(base_url, this.directives_url)
+    let directives_url = Path.join(this.base_url, this.directives_url)
 
     try {
       let res = await fetch(directives_url)

@@ -36,7 +36,7 @@ export default class Navigator {
       try {
         let page_module = await import(page_path)
         page = page_module.default
-        page.base_url = page_path
+        page.module_url = page_path
       } catch (error) {
         console.warn(error)
       }
@@ -51,7 +51,7 @@ export default class Navigator {
         let next_page_path = '/' + Path.join(base_root, page_path, segment, 'index.js')
         page_module = await import(next_page_path)
         page = page_module.default
-        page.base_url = next_page_path
+        page.module_url = next_page_path
       } catch (error) {
         console.warn(error)
       }
@@ -66,7 +66,7 @@ export default class Navigator {
         let default_page_path = '/' + Path.join(base_root, page_path, 'default', 'index.js')
         page_module = await import(default_page_path)
         page = page_module.default
-        page.base_url = default_page_path
+        page.module_url = default_page_path
       } catch (error) {
         console.warn(error)
       }

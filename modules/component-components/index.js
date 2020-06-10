@@ -2,6 +2,8 @@
 
 export default superclass => class extends superclass {
 
+  static components = []
+
   async init () {
     super.init()
     await this.locks.unlocked('content')
@@ -10,25 +12,28 @@ export default superclass => class extends superclass {
   }
 
   find_components (node) {
-    let components = new Set()
+    let components = this.constructor.components || []
 
     if (node.nodeType === Node.ELEMENT_NODE) {
-      let node_name = node.nodeName.toLowerCase()
+      let component_name = node.nodeName.toLowerCase()
 
-      if (node_name.includes('-')) {
-        components.add(node_name)
+      if (component_name.includes('-')) {
+        if (!components.includes(component_name))
+          components.push(component_name)
       }
 
-      if (node.nodeName === 'template') {
+      if (component_name === 'template') {
         node = node.content
       }
     }
 
     let children = node.children
     for (let child of children) {
-      let child_components = this.find_components(child)
-      for (let child_component of child_components) {
-        components.add(child_component)
+      let component_names = this.find_components(child)
+      for (let component_name of component_names) {
+        if (!components.includes(component_name)) {
+          components.push(component_name)
+        }
       }
     }
 

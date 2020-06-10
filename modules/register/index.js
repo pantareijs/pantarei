@@ -46,10 +46,11 @@ export default class Register {
       let module_obj = await import(module_url)
       component_constructor = module_obj.default
     } catch (error) {
+      console.warn(error)
       component_constructor = (class extends Component {})
     }
 
-    component_constructor.base_url = module_url
+    component_constructor.module_url = module_url
     this.define_component(component_name, component_constructor)
     return component_constructor
   }
@@ -61,6 +62,7 @@ export default class Register {
       }
       this._components[component_name] = component_constructor
     } catch (error) {
+      console.warn(error)
       this.events.emit('error', error)
     }
   }

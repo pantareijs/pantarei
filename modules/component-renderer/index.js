@@ -12,11 +12,14 @@ export default superclass => class extends superclass {
     this.locks.unlock('render')
   }
 
+  rendered () {}
+
   _render (data) {
     data = data || this.data || {}
     let node = this.shadowRoot
     let node_scope = node.scope || {}
     this._render_node(node, data, node_scope)
+    this.rendered()
   }
 
   _render_node (node, data, scope, recursive=true) {

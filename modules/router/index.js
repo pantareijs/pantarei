@@ -6,6 +6,10 @@ import Route from '../route/index.js'
 
 export default class Router {
 
+  static get base_url () {
+    return this.module_url.replace('/index.js', '/')
+  }
+
   static get default_routes () {
     return [
       {
@@ -37,8 +41,7 @@ export default class Router {
   }
 
   static async _fetch_routes () {
-    let base_url = this.base_url.replace('index.js', '')
-    let routes_url = Path.join(base_url, this.routes_url)
+    let routes_url = Path.join(this.base_url, this.routes_url)
     try {
       let res = await fetch(routes_url)
       let routes = await res.json()

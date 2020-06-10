@@ -76,7 +76,7 @@ export default class App {
 
     let router_module = await import(this.router_path)
     let Router = router_module.default
-    Router.base_url = this.router_path
+    Router.module_url = this.router_path
     this.router = new Router()
 
     let location = new Location()

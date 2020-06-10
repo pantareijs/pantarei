@@ -31,6 +31,15 @@ export default class Component extends mixin(HTMLElement,
     ComponentObserver,
     ComponentEvents) {
 
+  static module_url = import.meta.url
+
+  static get base_url () {
+    let module_url = this.module_url
+    let base_url_length = module_url.lastIndexOf('/')
+    let base_url = module_url.slice(0, base_url_length)
+    return base_url
+  }
+
   constructor () {
     super()
     this.locks = new Locker()
