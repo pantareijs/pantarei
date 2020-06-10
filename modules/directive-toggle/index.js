@@ -9,10 +9,16 @@ export default class DirectiveToggle extends Directive {
   constructor (options) {
     super(options)
 
-    this.content = this.node.firstElementChild
-    this.template = document.createElement('template')
-    this.template.content.appendChild(this.content)
-    this.node.insertBefore(this.template, this.content)
+    let node_name = this.node.nodeName.toLowerCase()
+    if (node_name === 'template') {
+      this.template = this.node
+      this.content = this.template.content.firstElementChild
+    } else {
+      this.template = document.createElement('template')
+      this.content = this.node.firstElementChild
+      this.node.insertBefore(this.template, this.content)
+      this.template.content.appendChild(this.content)
+    }
 
     this._created = false
     this._attached = false

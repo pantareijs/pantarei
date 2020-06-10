@@ -46,11 +46,16 @@ export default class DirectiveRepeat extends Directive {
     this.key_name = options.key_name
     this.value_name = options.value_name
 
-    this.content = this.node.firstElementChild
-
-    this.template = document.createElement('template')
-    this.node.insertBefore(this.template, this.content)
-    this.template.content.appendChild(this.content)
+    let node_name = this.node.nodeName.toLowerCase()
+    if (node_name === 'template') {
+      this.template = this.node
+      this.content = this.template.content.firstElementChild
+    } else {
+      this.template = document.createElement('template')
+      this.content = this.node.firstElementChild
+      this.node.insertBefore(this.template, this.content)
+      this.template.content.appendChild(this.content)
+    }
 
     this.node._items = []
     this.node._new_items = []
