@@ -64,63 +64,85 @@ class Service {
   }
 
   on_install (event) {
-    event.waitUntil(this.installing())
+    let promise = this.install()
+    event.waitUntil(promise)
   }
 
   on_activate (event) {
-    event.waitUntil(this.activating())
+    let promise = this.activate()
+    event.waitUntil(promise)
   }
 
   on_fetch (event) {
     let request = event.request
-    let promise_response = this.fetching(request)
-    event.respondWith(promise_response)
+    let promise = this.fetch(request)
+    event.respondWith(promise)
   }
 
   on_push (event) {
-    event.waitUntil(this.pushing())
+    let promise = this.push()
+    event.waitUntil(promise)
   }
 
-  async installing () {
+  async install () {
     await CacheStorage.clear([this.name])
   }
 
-  async activating () {}
+  async activate () {
+    await Promise.resolve()
+  }
+
+  async push () {
+    await Promise.resolve()
+  }
 
   async fetch (request) {
+    let promise_fetched_response = this.update_request(request)
+    let promise_matched_response = this.match_request(request)
+
+    let matched_response = await promise_matched_response
+    if (matched_response) {
+      return matched_response
+    }
+
+    let fetched_response = await promise_fetched_response
+    if (fetched_response) {
+      return fetched_response
+    }
+  }
+
+  async update_request (request) {
+    let [error, response] = await this.fetch_request(request)
+    if (error) {
+      return error
+    }
+    if (response.status !== 200) {
+      return response
+    }
+    await this.cache_request(request, response)
+    return response
+  }
+
+  async fetch_request (request) {
     try {
       let cloned_request = request.clone()
       let response = await fetch(cloned_request)
       return [null, response]
     } catch (error) {
-      return [error]
+      return [error, null]
     }
   }
 
-  async fetching (request) {
-    let [error, response] = await this.fetch(request)
-
-    if (response) {
-      await this.fetched(request, response)
-      return response
-    }
-
-    let cached_response = await this.cache.match(request)
-    if (cached_response) {
-      return cached_response
-    }
+  async match_request (request) {
+    let response = await this.cache.match(request)
+    return response
   }
 
-  async fetched (request, response) {
-    if(!response || response.status !== 200) {
-      return
-    }
+  async cache_request (request, response) {
     let cloned_request = request.clone()
     let cloned_response = response.clone()
     await this.cache.put(cloned_request, cloned_response)
   }
-
-  async pushing () {}
 
 }
 
