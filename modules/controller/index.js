@@ -9,7 +9,7 @@ export default class Controller {
   }
 
   use (actions) {
-    for (let name of actions) {
+    for (let name in actions) {
       this[name] = actions[name]
     }
     return this
