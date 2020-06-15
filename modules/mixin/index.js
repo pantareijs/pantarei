@@ -1,51 +1,46 @@
 
-let id = 0
+export default function mixin (base_class, ...extensions) {
 
-function generate_id () {
-  return id++
+  let exteded_class = apply_extensions(base_class, extensions)
+
+  return exteded_class
 }
 
-export function map (mapping) {
+export function apply_extensions (base_class, extensions) {
+  let extended_class
 
-  let mapping_applications = mapping.__applications
-  if (!mapping_applications) {
-    mapping_applications = new WeakMap()
-    mapping.__applications = mapping_applications
+  for (let extension of extensions) {
+    extended_class = apply_extension(base_class, extension)
+    base_class = extended_class
   }
 
-  return function (base) {
-    let base_mappings = base.__mappings
-    if (!base_mappings) {
-      base_mappings = new Set()
-      base.__mappings = base_mappings
-    }
-
-    if (base_mappings.has(mapping)) {
-      return base
-    }
-
-    let extended = mapping_applications.get(base)
-    if (!extended) {
-      extended = mapping(base)
-      mapping_applications.set(base, extended)
-
-      let extended_mappings = new Set(base_mappings)
-      extended_mappings.add(mapping)
-      extended.__mappings = new Set(base_mappings)
-    }
-
-    return extended
-  }
-
+  return extended_class
 }
 
-export default function mixin (base, ...mappings) {
-  let current_base
+export function apply_extension (base_class, extension) {
 
-  for (let mapping of mappings) {
-    current_base = map(mapping)(base)
-    base = current_base
+  if (!extension._applicants) {
+    extension._extended_classes = new WeakMap()
   }
 
-  return base
+  if (!base_class._applied_extensions) {
+    base_class._applied_extensions = new Set()
+  }
+
+  if (base_class._applied_extensions.has(extension)) {
+    return base_class
+  }
+
+  let extended_class = extension._extended_classes.get(base_class)
+  if (extended_class) {
+    return extended_class
+  }
+
+  extended_class = extension(base_class)
+  extended_class._applied_extensions = new Set(base_class._applied_extensions)
+  extended_class._applied_extensions.add(extension)
+
+  extension._extended_classes.set(base_class, extended_class)
+
+  return extended_class
 }

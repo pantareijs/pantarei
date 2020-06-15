@@ -4,6 +4,8 @@ export default superclass => class extends superclass {
 
   async init () {
     super.init()
+    this.data = this.data || {}
+
     await this.locks.unlocked('render')
     let data = this.data
 
