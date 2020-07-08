@@ -1,3 +1,3 @@
 # Pantarei
 
-The Web Framework for the Distributed Web
+Work in progress...

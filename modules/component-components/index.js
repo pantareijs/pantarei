@@ -7,11 +7,11 @@ export default superclass => class extends superclass {
   async init () {
     super.init()
     await this.locks.unlocked('content')
-    this.components = this.find_components(this.shadowRoot)
+    this.components = this.discover_components(this.shadowRoot)
     this.locks.unlock('components')
   }
 
-  find_components (node) {
+  discover_components (node) {
     let components = this.constructor.components || []
 
     if (node.nodeType === Node.ELEMENT_NODE) {
@@ -29,7 +29,7 @@ export default superclass => class extends superclass {
 
     let children = node.children
     for (let child of children) {
-      let component_names = this.find_components(child)
+      let component_names = this.discover_components(child)
       for (let component_name of component_names) {
         if (!components.includes(component_name)) {
           components.push(component_name)

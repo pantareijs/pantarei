@@ -73,11 +73,22 @@ export default class Router {
   }
 
   navigate (path) {
-    let matching = this.root.match(path)
+    let [basepath, searchstring] = path.split('?')
+
+    let searchparams = new URLSearchParams(searchstring)
+
+    let search = {}
+    for (let [key, value] of searchparams.entries()) {
+      search[key] = value
+    }
+
+    let matching = this.root.match(basepath)
 
     if (!matching.route) {
       return
     }
+
+    matching.search = search
 
     this.events.emit('change', matching)
   }

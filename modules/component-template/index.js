@@ -21,7 +21,7 @@ export default superclass => class extends superclass {
 
     let template_url = this.template_url
     if (!template_url) {
-      return ''
+      return '<slot></slot>'
     }
     let base_url = this.base_url
     template_url = Path.join(base_url, template_url)
