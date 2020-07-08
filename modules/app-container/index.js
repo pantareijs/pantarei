@@ -36,19 +36,6 @@ export default superclass => class extends superclass {
 
     this.container = container
     this.root.appendChild(container)
-
-    this.root.addEventListener('ready', this.on_component_ready.bind(this), true)
-  }
-
-  on_component_ready (event) {
-    let component = event.detail
-
-    let components = component.components
-    if (!components || !components.length) {
-      return
-    }
-
-    this.register.get_components(components)
   }
 
 }
