@@ -29,6 +29,9 @@ class Cache {
   }
 
   async put (request, response) {
+    if (request.method !== 'GET') {
+      return
+    }
     await this.open()
     await this._cache.put(request, response.clone())
   }

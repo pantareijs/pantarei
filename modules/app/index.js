@@ -8,15 +8,29 @@ import AppController from '../app-controller/index.js'
 import AppRouter from '../app-router/index.js'
 import Path from '../path/index.js'
 
-export default class App extends mixin(class {},
-    AppRoot,
-    AppRegister,
-    AppContainer,
-    AppController,
-    AppRouter) {
+export default class App extends mixin (class {
+
+    static config = {}
+
+    get base_url () {
+      let origin = location.origin
+      let pathname = location.pathname
+      if (pathname.endsWith('.html')) {
+        pathname = Path.join(pathname, '..')
+      }
+      let base_url = Path.join(origin, pathname)
+      return base_url
+    }
+
+    async start () {}
+
+  },
+  AppRoot, AppController, AppRegister, AppContainer, AppRouter) {
 
   static get config () {
-    return {}
+    return {
+      ...super.config
+    }
   }
 
   static async start (config) {
@@ -25,16 +39,8 @@ export default class App extends mixin(class {},
     return app
   }
 
-  get base_url () {
-    let origin = location.origin
-    let pathname = location.pathname
-    if (pathname.endsWith('.html')) {
-      pathname = Path.join(pathname, '..')
-    }
-    let base_url = Path.join(origin, pathname)
-    return base_url
+  async start () {
+    super.start()
   }
-
-  async start () {}
 
 }

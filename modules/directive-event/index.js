@@ -16,12 +16,11 @@ export default class DirectiveEvent extends Directive {
       return
     }
 
-    let _on_event = this._on_event.bind(this)
+    let handle_event = this.handle_event.bind(this)
 
-    let unbubbled = ['focus', 'blur']
-    if (node.nodeName === 'INPUT' && unbubbled.includes(event_name)) {
-      let postfix = '-bubble'
-      let custom_event_name = event_name + postfix
+    let unbubbled_events = { 'focus': 1, 'blur': 1 }
+    if (event_name in unbubbled_events) {
+      let custom_event_name = event_name + '-bubble'
       node.addEventListener(event_name, (event) => {
         let config = { bubbles: true, cancelable: true, detail: event }
         let custom_event = new CustomEvent(custom_event_name, config)
@@ -38,20 +37,26 @@ export default class DirectiveEvent extends Directive {
     let host = root.host
     this._host = host
 
-    host._listening = host._listening || {}
-    if (!host._listening[event_name]) {
-      host.shadowRoot.addEventListener(event_name, _on_event, false)
-      host._listening[event_name] = true
+    let event_listener = this.value_expression.eval(host)
+    if (!event_listener) {
+      let listener_name = options.value_path
+      console.warn(`${host} has no listener ${listener_name}`)
+      return
     }
 
-    let event_listener = this.value_expression.eval(host)
     event_listener.host = host
+
+    host._listening = host._listening || {}
+    if (!host._listening[event_name]) {
+      host.shadowRoot.addEventListener(event_name, handle_event, false)
+      host._listening[event_name] = true
+    }
 
     node._listeners = node._listeners || {}
     node._listeners[event_name] = event_listener
   }
 
-  _on_event (event) {
+  handle_event (event) {
     let host = this._host
     let root = host.shadowRoot
 

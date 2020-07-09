@@ -1,5 +1,6 @@
 'use strict'
 
+import Register from '../register/index.js'
 import Path from '../path/index.js'
 
 export default superclass => class extends superclass {
