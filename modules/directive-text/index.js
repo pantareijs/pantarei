@@ -9,14 +9,6 @@ export default class DirectiveText extends Directive {
   run (data) {
     let value = this.value_expression.eval(data)
 
-    if (value === null) {
-      value = ''
-    }
-
-    if (value === undefined) {
-      value = ''
-    }
-
     if (typeof value === 'number') {
       value = '' + value
     }
@@ -25,15 +17,13 @@ export default class DirectiveText extends Directive {
       value = ''
     }
 
-    let new_text = '' + value
+    let current_value = this.node.innerText
 
-    let old_text = this.node.innerText
-
-    if (new_text === old_text) {
+    if (value === current_value) {
       return
     }
 
-    this.node.innerText = new_text
+    this.node.innerText = value
   }
 
 }

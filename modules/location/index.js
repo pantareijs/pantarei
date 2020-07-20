@@ -9,25 +9,24 @@ export default class Location {
     this.on_change = this.on_change.bind(this)
   }
 
-  start () {
+  async start () {
     if (this._started) {
       return this
     }
 
-    location.hash = location.hash || '#/'
-    let url = location.pathname + location.hash
-
+    let hash = location.hash || '#/'
+    let url = location.origin + location.pathname + hash
     this.on_change({ newURL: url })
+
     window.addEventListener('hashchange', this.on_change)
 
     this._started = true
-    return this
   }
 
   stop () {
     window.removeEventListener('hashchange', this.on_change)
+
     this._started = false
-    return this
   }
 
   on_change (event) {

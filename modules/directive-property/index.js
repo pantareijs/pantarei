@@ -27,6 +27,15 @@ export default class DirectiveProperty extends Directive {
     node[name] = value
   }
 
+  ['input value'] (data) {
+    let node = this.node
+    let value = this.value_expression.eval(data)
+
+    if (value === undefined || value === null) {
+      value = ''
+    }
+  }
+
   ['input checked'] (data) {
     let node = this.node
     let value = this.value_expression.eval(data)
