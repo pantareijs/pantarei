@@ -2,7 +2,6 @@
 
 import Emitter from '../emitter/index.js'
 import Path from '../path/index.js'
-import Route from '../route/index.js'
 
 export default class Navigator {
 

@@ -34,10 +34,16 @@ export default class Component extends mixin(HTMLElement,
   static module_url = import.meta.url
 
   static get base_url () {
+    if (this._base_url) {
+      return this._base_url
+    }
+
     let module_url = this.module_url
     let base_url_length = module_url.lastIndexOf('/')
     let base_url = module_url.slice(0, base_url_length)
-    return base_url
+    this._base_url = base_url
+
+    return this._base_url
   }
 
   constructor () {
@@ -48,7 +54,7 @@ export default class Component extends mixin(HTMLElement,
 
   async init () {
     super.init()
-    this.init_shadow()
+    this.init_root()
 
     await this.locks.unlocked([
       'template',
@@ -69,8 +75,8 @@ export default class Component extends mixin(HTMLElement,
 
   ready () {}
 
-  init_shadow () {
-    this.attachShadow({ mode: 'open' })
+  init_root (mode='open') {
+    this.attachShadow({ mode })
     this.locks.unlock('shadow')
   }
 
